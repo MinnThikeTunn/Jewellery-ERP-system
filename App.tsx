@@ -16,9 +16,7 @@ import {
   X,
   Loader2,
   Database,
-  RefreshCw,
-  Settings,
-  Server
+  RefreshCw
 } from 'lucide-react';
 
 import { Dashboard } from './components/Dashboard';
@@ -26,9 +24,8 @@ import { Inventory } from './components/Inventory';
 import { Manufacturing } from './components/Manufacturing';
 import { Purchasing } from './components/Purchasing';
 import { Accounting } from './components/Accounting';
-import { ConnectionManager } from './components/ConnectionManager';
 import { InventoryItem, RawMaterial, Vendor, PurchaseOrder, GLEntry } from './types';
-import { supabase, isConfigured } from './lib/supabaseClient';
+import { supabase } from './lib/supabaseClient';
 import { seedDatabase } from './lib/seeder';
 
 const NavItem = ({ to, icon: Icon, label }: { to: string, icon: any, label: string }) => {
@@ -50,7 +47,7 @@ const NavItem = ({ to, icon: Icon, label }: { to: string, icon: any, label: stri
   );
 };
 
-const Layout = ({ children, onSeed, onOpenSettings }: { children?: React.ReactNode, onSeed: () => void, onOpenSettings: () => void }) => {
+const Layout = ({ children, onSeed }: { children?: React.ReactNode, onSeed: () => void }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
@@ -87,13 +84,6 @@ const Layout = ({ children, onSeed, onOpenSettings }: { children?: React.ReactNo
         </nav>
 
         <div className="absolute bottom-0 w-full p-6 border-t border-slate-800 space-y-4">
-           <button 
-             onClick={onOpenSettings}
-             className="w-full flex items-center gap-2 text-xs text-slate-400 hover:text-white transition-colors"
-           >
-             <Settings size={14} /> Connection Settings
-           </button>
-           
            <button 
              onClick={onSeed}
              className="w-full flex items-center gap-2 text-xs text-slate-400 hover:text-amber-400 transition-colors"
@@ -135,7 +125,6 @@ const App: React.FC = () => {
   // State
   const [loading, setLoading] = useState(true);
   const [seeding, setSeeding] = useState(false);
-  const [showSettings, setShowSettings] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
   const [inventory, setInventory] = useState<InventoryItem[]>([]);
@@ -148,11 +137,6 @@ const App: React.FC = () => {
     setLoading(true);
     setError(null);
     try {
-      // If not configured, don't even try to fetch, just show empty state or wait for user
-      if (!isConfigured()) {
-        throw new Error("Supabase not configured. Please set your API URL and Key in Settings.");
-      }
-
       const [invRes, rawRes, vendRes, poRes, glRes] = await Promise.all([
         supabase.from('inventory_items').select('*').order('id', { ascending: false }),
         supabase.from('raw_materials').select('*'),
@@ -176,11 +160,6 @@ const App: React.FC = () => {
     } catch (err: any) {
       console.error("Error fetching data:", err);
       setError(err.message || "Failed to connect to Supabase.");
-      
-      // If it's a fetch error, it implies connection issues (likely invalid URL/Key)
-      if (err.message && (err.message.includes('fetch') || err.message.includes('configured'))) {
-        setShowSettings(true);
-      }
     } finally {
       setLoading(false);
     }
@@ -227,6 +206,50 @@ const App: React.FC = () => {
     }
   };
 
+  const handleUpdateItem = async (updatedItem: InventoryItem) => {
+    // Optimistic update
+    const originalInventory = [...inventory];
+    setInventory(prev => prev.map(item => item.id === updatedItem.id ? updatedItem : item));
+
+    const { error } = await supabase
+      .from('inventory_items')
+      .update({
+        sku: updatedItem.sku,
+        name: updatedItem.name,
+        item_type: updatedItem.item_type,
+        status: updatedItem.status,
+        location: updatedItem.location,
+        qty_available: updatedItem.qty_available,
+        landed_cost: updatedItem.landed_cost,
+        retail_price: updatedItem.retail_price,
+        reorder_point: updatedItem.reorder_point
+      })
+      .eq('id', updatedItem.id);
+
+    if (error) {
+      console.error("Error updating item:", error);
+      alert("Failed to update item: " + error.message);
+      setInventory(originalInventory); // Revert
+    }
+  };
+
+  const handleDeleteItem = async (id: number) => {
+    // Optimistic delete
+    const originalInventory = [...inventory];
+    setInventory(prev => prev.filter(item => item.id !== id));
+
+    const { error } = await supabase
+      .from('inventory_items')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      console.error("Error deleting item:", error);
+      alert("Failed to delete item: " + error.message);
+      setInventory(originalInventory); // Revert
+    }
+  };
+
   const handleCreateJob = async (materialId: number, amountUsed: number, newItem: Omit<InventoryItem, 'id'>) => {
     const material = rawMaterials.find(m => m.id === materialId);
     if(!material) return;
@@ -253,8 +276,7 @@ const App: React.FC = () => {
 
   return (
     <Router>
-      <Layout onSeed={handleSeed} onOpenSettings={() => setShowSettings(true)}>
-        <ConnectionManager isOpen={showSettings} onClose={() => setShowSettings(false)} />
+      <Layout onSeed={handleSeed}>
         
         {seeding && (
            <div className="fixed inset-0 bg-black/20 z-50 flex items-center justify-center backdrop-blur-sm">
@@ -272,9 +294,6 @@ const App: React.FC = () => {
                 <span>⚠️ {error}</span>
              </div>
              <div className="flex gap-2">
-                <button onClick={() => setShowSettings(true)} className="flex items-center gap-2 bg-white border border-red-200 hover:bg-red-50 px-3 py-1 rounded-md transition-colors text-red-800 font-medium">
-                    <Server size={14} /> Settings
-                </button>
                 <button onClick={fetchAllData} className="flex items-center gap-2 bg-red-100 hover:bg-red-200 px-3 py-1 rounded-md transition-colors text-red-900 font-medium">
                     <RefreshCw size={14} /> Retry
                 </button>
@@ -323,6 +342,8 @@ const App: React.FC = () => {
             <Inventory 
               items={inventory} 
               onAddItem={handleAddItem}
+              onUpdateItem={handleUpdateItem}
+              onDeleteItem={handleDeleteItem}
             />
           } />
           <Route path="/manufacturing" element={

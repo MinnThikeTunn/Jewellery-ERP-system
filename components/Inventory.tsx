@@ -1,15 +1,18 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { InventoryItem, ItemType, ItemStatus } from '../types';
-import { Search, Filter, Plus, AlertCircle, CheckCircle, Tag } from 'lucide-react';
+import { Search, Filter, Plus, AlertCircle, CheckCircle, Tag, Pencil, Trash2, X } from 'lucide-react';
 
 interface InventoryProps {
   items: InventoryItem[];
   onAddItem: (item: Omit<InventoryItem, 'id'>) => void;
+  onUpdateItem: (item: InventoryItem) => void;
+  onDeleteItem: (id: number) => void;
 }
 
-export const Inventory: React.FC<InventoryProps> = ({ items, onAddItem }) => {
+export const Inventory: React.FC<InventoryProps> = ({ items, onAddItem, onUpdateItem, onDeleteItem }) => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [showAddModal, setShowAddModal] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingId, setEditingId] = useState<number | null>(null);
   
   // Filter Logic
   const filteredItems = items.filter(item => 
@@ -17,28 +20,63 @@ export const Inventory: React.FC<InventoryProps> = ({ items, onAddItem }) => {
     item.sku.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // Mock Form State
-  const [newItem, setNewItem] = useState<Partial<InventoryItem>>({
+  // Form State
+  const initialFormState: Partial<InventoryItem> = {
     item_type: ItemType.FINISHED_GOOD,
-    status: ItemStatus.IN_STOCK
-  });
+    status: ItemStatus.IN_STOCK,
+    qty_available: 0,
+    landed_cost: 0,
+    retail_price: 0,
+    reorder_point: 0
+  };
+
+  const [formData, setFormData] = useState<Partial<InventoryItem>>(initialFormState);
+
+  const handleOpenAdd = () => {
+    setEditingId(null);
+    setFormData(initialFormState);
+    setIsModalOpen(true);
+  };
+
+  const handleOpenEdit = (item: InventoryItem) => {
+    setEditingId(item.id);
+    setFormData({ ...item });
+    setIsModalOpen(true);
+  };
+
+  const handleDelete = (id: number) => {
+    if (window.confirm('Are you sure you want to delete this item? This action cannot be undone.')) {
+        onDeleteItem(id);
+    }
+  };
 
   const handleSave = () => {
-    if (newItem.sku && newItem.name && newItem.qty_available !== undefined) {
-      const item: Omit<InventoryItem, 'id'> = {
-        sku: newItem.sku,
-        name: newItem.name,
-        item_type: newItem.item_type || ItemType.FINISHED_GOOD,
-        status: newItem.status || ItemStatus.IN_STOCK,
-        location: newItem.location || 'Unassigned',
-        qty_available: Number(newItem.qty_available),
-        landed_cost: Number(newItem.landed_cost || 0),
-        retail_price: Number(newItem.retail_price || 0),
-        reorder_point: Number(newItem.reorder_point || 0)
-      };
-      onAddItem(item);
-      setShowAddModal(false);
-      setNewItem({ item_type: ItemType.FINISHED_GOOD, status: ItemStatus.IN_STOCK });
+    if (formData.sku && formData.name && formData.qty_available !== undefined) {
+      if (editingId) {
+        // Update existing
+        onUpdateItem({
+            ...formData,
+            id: editingId
+        } as InventoryItem);
+      } else {
+        // Add new
+        const item: Omit<InventoryItem, 'id'> = {
+            sku: formData.sku,
+            name: formData.name,
+            item_type: formData.item_type || ItemType.FINISHED_GOOD,
+            status: formData.status || ItemStatus.IN_STOCK,
+            location: formData.location || 'Unassigned',
+            qty_available: Number(formData.qty_available),
+            landed_cost: Number(formData.landed_cost || 0),
+            retail_price: Number(formData.retail_price || 0),
+            reorder_point: Number(formData.reorder_point || 0)
+        };
+        onAddItem(item);
+      }
+      setIsModalOpen(false);
+      setFormData(initialFormState);
+    } else {
+        alert("Please fill in at least SKU and Name");
     }
   };
 
@@ -50,7 +88,7 @@ export const Inventory: React.FC<InventoryProps> = ({ items, onAddItem }) => {
           <p className="text-slate-500">Manage your finished goods and loose stones.</p>
         </div>
         <button 
-          onClick={() => setShowAddModal(true)}
+          onClick={handleOpenAdd}
           className="bg-slate-900 hover:bg-slate-800 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
         >
           <Plus size={18} />
@@ -89,11 +127,12 @@ export const Inventory: React.FC<InventoryProps> = ({ items, onAddItem }) => {
                 <th className="px-6 py-4 text-right">Cost</th>
                 <th className="px-6 py-4 text-right">Retail</th>
                 <th className="px-6 py-4">Status</th>
+                <th className="px-6 py-4 text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-200">
               {filteredItems.map((item) => (
-                <tr key={item.id} className="hover:bg-slate-50 transition-colors">
+                <tr key={item.id} className="hover:bg-slate-50 transition-colors group">
                   <td className="px-6 py-4">
                     <div className="font-medium text-slate-900">{item.sku}</div>
                     <div className="text-slate-500">{item.name}</div>
@@ -106,7 +145,7 @@ export const Inventory: React.FC<InventoryProps> = ({ items, onAddItem }) => {
                   </td>
                   <td className="px-6 py-4 text-slate-600">{item.location}</td>
                   <td className="px-6 py-4 text-right font-medium">
-                    <span className={item.qty_available <= item.reorder_point ? "text-red-600 flex items-center justify-end gap-1" : "text-slate-900"}>
+                    <span className={`flex items-center justify-end gap-1 ${item.qty_available <= item.reorder_point ? "text-red-600" : "text-slate-900"}`}>
                       {item.qty_available <= item.reorder_point && <AlertCircle size={14} />}
                       {item.qty_available}
                     </span>
@@ -122,6 +161,24 @@ export const Inventory: React.FC<InventoryProps> = ({ items, onAddItem }) => {
                       {item.status}
                     </span>
                   </td>
+                  <td className="px-6 py-4 text-right">
+                    <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button 
+                            onClick={() => handleOpenEdit(item)}
+                            className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                            title="Edit Item"
+                        >
+                            <Pencil size={16} />
+                        </button>
+                        <button 
+                            onClick={() => handleDelete(item.id)}
+                            className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                            title="Delete Item"
+                        >
+                            <Trash2 size={16} />
+                        </button>
+                    </div>
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -134,13 +191,15 @@ export const Inventory: React.FC<InventoryProps> = ({ items, onAddItem }) => {
         )}
       </div>
 
-      {/* Add Item Modal Overlay */}
-      {showAddModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-lg overflow-hidden">
-            <div className="px-6 py-4 border-b border-slate-200 flex justify-between items-center">
-              <h2 className="text-lg font-bold text-slate-800">Add Inventory Item</h2>
-              <button onClick={() => setShowAddModal(false)} className="text-slate-400 hover:text-slate-600">✕</button>
+      {/* Add/Edit Item Modal Overlay */}
+      {isModalOpen && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-lg overflow-hidden animate-in fade-in zoom-in duration-200">
+            <div className="px-6 py-4 border-b border-slate-200 flex justify-between items-center bg-slate-50">
+              <h2 className="text-lg font-bold text-slate-800">{editingId ? 'Edit Inventory Item' : 'Add Inventory Item'}</h2>
+              <button onClick={() => setIsModalOpen(false)} className="text-slate-400 hover:text-slate-600">
+                <X size={20} />
+              </button>
             </div>
             <div className="p-6 space-y-4">
               <div className="grid grid-cols-2 gap-4">
@@ -148,18 +207,18 @@ export const Inventory: React.FC<InventoryProps> = ({ items, onAddItem }) => {
                   <label className="block text-xs font-medium text-slate-700 mb-1">SKU</label>
                   <input 
                     type="text" 
-                    className="w-full border border-slate-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-amber-500 focus:outline-none"
-                    value={newItem.sku || ''}
-                    onChange={e => setNewItem({...newItem, sku: e.target.value})}
+                    className="w-full border border-slate-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-amber-500 focus:outline-none transition-shadow"
+                    value={formData.sku || ''}
+                    onChange={e => setFormData({...formData, sku: e.target.value})}
                     placeholder="e.g. RG-001"
                   />
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-slate-700 mb-1">Type</label>
                   <select 
-                    className="w-full border border-slate-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-amber-500 focus:outline-none"
-                    value={newItem.item_type}
-                    onChange={e => setNewItem({...newItem, item_type: e.target.value as ItemType})}
+                    className="w-full border border-slate-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-amber-500 focus:outline-none bg-white"
+                    value={formData.item_type}
+                    onChange={e => setFormData({...formData, item_type: e.target.value as ItemType})}
                   >
                     {Object.values(ItemType).map(t => <option key={t} value={t}>{t}</option>)}
                   </select>
@@ -171,8 +230,8 @@ export const Inventory: React.FC<InventoryProps> = ({ items, onAddItem }) => {
                 <input 
                   type="text" 
                   className="w-full border border-slate-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-amber-500 focus:outline-none"
-                  value={newItem.name || ''}
-                  onChange={e => setNewItem({...newItem, name: e.target.value})}
+                  value={formData.name || ''}
+                  onChange={e => setFormData({...formData, name: e.target.value})}
                 />
               </div>
 
@@ -182,8 +241,8 @@ export const Inventory: React.FC<InventoryProps> = ({ items, onAddItem }) => {
                   <input 
                     type="number" 
                     className="w-full border border-slate-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-amber-500 focus:outline-none"
-                    value={newItem.qty_available || ''}
-                    onChange={e => setNewItem({...newItem, qty_available: Number(e.target.value)})}
+                    value={formData.qty_available}
+                    onChange={e => setFormData({...formData, qty_available: Number(e.target.value)})}
                   />
                 </div>
                 <div>
@@ -191,8 +250,8 @@ export const Inventory: React.FC<InventoryProps> = ({ items, onAddItem }) => {
                   <input 
                     type="number" 
                     className="w-full border border-slate-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-amber-500 focus:outline-none"
-                    value={newItem.landed_cost || ''}
-                    onChange={e => setNewItem({...newItem, landed_cost: Number(e.target.value)})}
+                    value={formData.landed_cost}
+                    onChange={e => setFormData({...formData, landed_cost: Number(e.target.value)})}
                   />
                 </div>
                  <div>
@@ -200,24 +259,40 @@ export const Inventory: React.FC<InventoryProps> = ({ items, onAddItem }) => {
                   <input 
                     type="number" 
                     className="w-full border border-slate-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-amber-500 focus:outline-none"
-                    value={newItem.retail_price || ''}
-                    onChange={e => setNewItem({...newItem, retail_price: Number(e.target.value)})}
+                    value={formData.retail_price}
+                    onChange={e => setFormData({...formData, retail_price: Number(e.target.value)})}
                   />
                 </div>
               </div>
-              <div>
-                  <label className="block text-xs font-medium text-slate-700 mb-1">Location</label>
-                  <input 
-                    type="text" 
-                    className="w-full border border-slate-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-amber-500 focus:outline-none"
-                    value={newItem.location || ''}
-                    onChange={e => setNewItem({...newItem, location: e.target.value})}
-                  />
-                </div>
+              
+              <div className="grid grid-cols-2 gap-4">
+                 <div>
+                    <label className="block text-xs font-medium text-slate-700 mb-1">Location</label>
+                    <input 
+                        type="text" 
+                        className="w-full border border-slate-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-amber-500 focus:outline-none"
+                        value={formData.location || ''}
+                        onChange={e => setFormData({...formData, location: e.target.value})}
+                    />
+                 </div>
+                 <div>
+                    <label className="block text-xs font-medium text-slate-700 mb-1">Status</label>
+                    <select 
+                        className="w-full border border-slate-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-amber-500 focus:outline-none bg-white"
+                        value={formData.status}
+                        onChange={e => setFormData({...formData, status: e.target.value as ItemStatus})}
+                    >
+                        {Object.values(ItemStatus).map(s => <option key={s} value={s}>{s}</option>)}
+                    </select>
+                 </div>
+              </div>
             </div>
             <div className="px-6 py-4 bg-slate-50 border-t border-slate-200 flex justify-end gap-3">
-              <button onClick={() => setShowAddModal(false)} className="px-4 py-2 text-slate-600 hover:text-slate-800">Cancel</button>
-              <button onClick={handleSave} className="px-4 py-2 bg-slate-900 text-white rounded-lg hover:bg-slate-800">Save Item</button>
+              <button onClick={() => setIsModalOpen(false)} className="px-4 py-2 text-slate-600 hover:text-slate-800 font-medium transition-colors">Cancel</button>
+              <button onClick={handleSave} className="px-4 py-2 bg-slate-900 text-white rounded-lg hover:bg-slate-800 shadow-sm transition-all hover:shadow flex items-center gap-2">
+                {editingId ? <Pencil size={16} /> : <Plus size={16} />}
+                {editingId ? 'Update Item' : 'Save Item'}
+              </button>
             </div>
           </div>
         </div>

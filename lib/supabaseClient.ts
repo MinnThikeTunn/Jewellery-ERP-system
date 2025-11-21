@@ -1,23 +1,26 @@
 import { createClient } from '@supabase/supabase-js';
 
-// check localStorage first (for client-side config), then env vars
-const storedUrl = typeof window !== 'undefined' ? localStorage.getItem('jewelerp_supabase_url') : null;
-const storedKey = typeof window !== 'undefined' ? localStorage.getItem('jewelerp_supabase_key') : null;
+const DEFAULT_URL = 'https://gsfivewutdkpshxrvjdy.supabase.co';
+const DEFAULT_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdzZml2ZXd1dGRrcHNoeHJ2amR5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM2Mzc4ODgsImV4cCI6MjA3OTIxMzg4OH0.NXOUFHEVXX5ZiueQqB9mrevCm2VSfbBVtZiVVYWKt7Y';
 
-// Fallback to placeholder if nothing is found. This ensures the app doesn't crash on load,
-// but API calls will fail (prompting the user to enter creds via the UI).
-const supabaseUrl = storedUrl || process.env.SUPABASE_URL || 'https://placeholder.supabase.co';
-const supabaseKey = storedKey || process.env.SUPABASE_ANON_KEY || 'placeholder-key';
+const getStoredConfig = () => {
+  const url = localStorage.getItem('jewelerp_supabase_url');
+  const key = localStorage.getItem('jewelerp_supabase_key');
+  return {
+    url: url || DEFAULT_URL,
+    key: key || DEFAULT_KEY
+  };
+};
 
-export const supabase = createClient(supabaseUrl, supabaseKey);
+const config = getStoredConfig();
+
+export const supabase = createClient(config.url, config.key);
+
+// Deprecated but kept for compatibility, always true now
+export const isConfigured = () => true;
 
 export const updateSupabaseConfig = (url: string, key: string) => {
   localStorage.setItem('jewelerp_supabase_url', url);
   localStorage.setItem('jewelerp_supabase_key', key);
-  // Force a reload to re-initialize the module-level client
   window.location.reload();
-};
-
-export const isConfigured = () => {
-  return supabaseUrl !== 'https://placeholder.supabase.co' && supabaseKey !== 'placeholder-key';
 };
