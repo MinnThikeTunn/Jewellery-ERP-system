@@ -18,8 +18,8 @@ export const INITIAL_INVENTORY: InventoryItem[] = [
     status: ItemStatus.IN_STOCK,
     location: 'Vault A1',
     qty_available: 5,
-    landed_cost: 850.00,
-    retail_price: 2200.00,
+    landed_cost: 2550000,
+    retail_price: 6600000,
     reorder_point: 2
   },
   {
@@ -30,8 +30,8 @@ export const INITIAL_INVENTORY: InventoryItem[] = [
     status: ItemStatus.IN_STOCK,
     location: 'Showroom Case 3',
     qty_available: 12,
-    landed_cost: 420.50,
-    retail_price: 950.00,
+    landed_cost: 1250000,
+    retail_price: 2850000,
     reorder_point: 5
   },
   {
@@ -42,8 +42,8 @@ export const INITIAL_INVENTORY: InventoryItem[] = [
     status: ItemStatus.RESERVED,
     location: 'Vault B2',
     qty_available: 1,
-    landed_cost: 3500.00,
-    retail_price: 5800.00,
+    landed_cost: 10500000,
+    retail_price: 17400000,
     reorder_point: 1
   }
 ];
@@ -54,21 +54,21 @@ export const INITIAL_RAW_MATERIALS: RawMaterial[] = [
     name: '18k White Gold Casting Grain',
     unit_of_measure: UnitOfMeasure.GRAM,
     current_stock: 250.5,
-    cost_per_unit: 62.50
+    cost_per_unit: 187500
   },
   {
     id: 2,
     name: 'Yellow Gold Wire',
     unit_of_measure: UnitOfMeasure.GRAM,
     current_stock: 100.0,
-    cost_per_unit: 65.00
+    cost_per_unit: 195000
   },
   {
     id: 3,
     name: 'Melee Diamonds (1mm)',
     unit_of_measure: UnitOfMeasure.PIECE,
     current_stock: 500,
-    cost_per_unit: 15.00
+    cost_per_unit: 45000
   }
 ];
 
@@ -93,14 +93,14 @@ export const INITIAL_POS: PurchaseOrder[] = [
     vendor_id: 1,
     date: '2023-10-15',
     status: 'Received',
-    total_amount: 5400.00
+    total_amount: 16200000
   },
   {
     id: 102,
     vendor_id: 2,
     date: '2023-10-20',
     status: 'Pending',
-    total_amount: 12500.00
+    total_amount: 37500000
   }
 ];
 
@@ -110,7 +110,7 @@ export const INITIAL_GL_ENTRIES: GLEntry[] = [
     entry_date: '2023-10-01',
     account_code: '6001',
     description: 'Shop Rent - October',
-    debit: 2500.00,
+    debit: 7500000,
     credit: 0
   },
   {
@@ -119,14 +119,14 @@ export const INITIAL_GL_ENTRIES: GLEntry[] = [
     account_code: '4001',
     description: 'Sales Revenue - Weekly',
     debit: 0,
-    credit: 15400.00
+    credit: 46200000
   },
   {
     id: 3,
     entry_date: '2023-10-10',
     account_code: '5001',
     description: 'COGS - Custom Order #442',
-    debit: 3200.00,
+    debit: 9600000,
     credit: 0
   }
 ];

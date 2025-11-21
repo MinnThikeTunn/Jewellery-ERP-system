@@ -89,9 +89,13 @@ export const Manufacturing: React.FC<ManufacturingProps> = ({ rawMaterials, onCr
                     <td className="px-6 py-4 font-medium text-slate-900">{mat.name}</td>
                     <td className="px-6 py-4 text-slate-500">{mat.unit_of_measure}</td>
                     <td className="px-6 py-4 text-right font-mono">{mat.current_stock}</td>
-                    <td className="px-6 py-4 text-right text-slate-600">${mat.cost_per_unit.toFixed(2)}</td>
-                    <td className="px-6 py-4 text-right font-medium text-slate-900">
-                        ${(mat.current_stock * mat.cost_per_unit).toLocaleString()}
+                    <td className="px-6 py-4 text-right text-slate-600 tabular-nums">
+                         <span className="text-xs text-slate-400 mr-1">Ks</span>
+                         {mat.cost_per_unit.toLocaleString()}
+                    </td>
+                    <td className="px-6 py-4 text-right font-medium text-slate-900 tabular-nums">
+                        <span className="text-xs text-slate-400 mr-1">Ks</span>
+                        {(mat.current_stock * mat.cost_per_unit).toLocaleString()}
                     </td>
                     </tr>
                 ))}
@@ -115,7 +119,7 @@ export const Manufacturing: React.FC<ManufacturingProps> = ({ rawMaterials, onCr
                             onChange={(e) => setSelectedMaterialId(Number(e.target.value))}
                         >
                             {rawMaterials.map(m => (
-                                <option key={m.id} value={m.id}>{m.name} (${m.cost_per_unit}/{m.unit_of_measure})</option>
+                                <option key={m.id} value={m.id}>{m.name} (Ks {m.cost_per_unit.toLocaleString()}/{m.unit_of_measure})</option>
                             ))}
                         </select>
                     </div>
@@ -130,7 +134,7 @@ export const Manufacturing: React.FC<ManufacturingProps> = ({ rawMaterials, onCr
                             />
                         </div>
                          <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">Labor Cost ($)</label>
+                            <label className="block text-sm font-medium text-slate-700 mb-1">Labor Cost (Ks)</label>
                             <input 
                                 type="number"
                                 className="w-full border border-slate-300 rounded-md px-3 py-2"
@@ -170,16 +174,16 @@ export const Manufacturing: React.FC<ManufacturingProps> = ({ rawMaterials, onCr
                 <div className="space-y-3 text-sm">
                     <div className="flex justify-between">
                         <span className="text-slate-500">Material Cost</span>
-                        <span className="font-medium">${materialCost.toFixed(2)}</span>
+                        <span className="font-medium tabular-nums">Ks {materialCost.toLocaleString()}</span>
                     </div>
                      <div className="flex justify-between">
                         <span className="text-slate-500">Labor Cost</span>
-                        <span className="font-medium">${laborCost.toFixed(2)}</span>
+                        <span className="font-medium tabular-nums">Ks {laborCost.toLocaleString()}</span>
                     </div>
                     <div className="h-px bg-slate-200 my-2"></div>
                     <div className="flex justify-between text-lg font-bold text-slate-900">
                         <span>Total COGS</span>
-                        <span>${totalCost.toFixed(2)}</span>
+                        <span className="tabular-nums">Ks {totalCost.toLocaleString()}</span>
                     </div>
                 </div>
                 <button 

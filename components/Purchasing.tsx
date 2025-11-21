@@ -65,7 +65,10 @@ export const Purchasing: React.FC<PurchasingProps> = ({ vendors, purchaseOrders 
                                     <td className="px-6 py-4 font-mono text-slate-600">PO-{po.id}</td>
                                     <td className="px-6 py-4 text-slate-900 font-medium">{vendor?.name || 'Unknown'}</td>
                                     <td className="px-6 py-4 text-slate-500">{po.date}</td>
-                                    <td className="px-6 py-4 text-slate-900 text-right">${po.total_amount.toLocaleString()}</td>
+                                    <td className="px-6 py-4 text-slate-900 text-right tabular-nums">
+                                        <span className="text-xs text-slate-400 mr-1">Ks</span>
+                                        {po.total_amount.toLocaleString()}
+                                    </td>
                                     <td className="px-6 py-4">
                                         <span className={`inline-flex px-2 py-1 rounded-full text-xs font-medium
                                             ${po.status === 'Received' ? 'bg-emerald-100 text-emerald-700' :

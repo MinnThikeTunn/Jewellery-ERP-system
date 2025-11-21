@@ -25,15 +25,24 @@ export const Accounting: React.FC<AccountingProps> = ({ glEntries }) => {
       <div className="grid grid-cols-3 gap-4">
         <div className="bg-slate-800 text-white p-6 rounded-lg">
              <h4 className="text-slate-400 text-sm font-medium uppercase tracking-wider">Total Debits (Oct)</h4>
-             <p className="text-2xl font-bold mt-2">$5,700.00</p>
+             <p className="text-2xl font-bold mt-2 tabular-nums">
+                <span className="text-base text-slate-400 mr-1 font-normal">Ks</span>
+                {(17100000).toLocaleString()}
+             </p>
         </div>
          <div className="bg-slate-800 text-white p-6 rounded-lg">
              <h4 className="text-slate-400 text-sm font-medium uppercase tracking-wider">Total Credits (Oct)</h4>
-             <p className="text-2xl font-bold mt-2">$15,400.00</p>
+             <p className="text-2xl font-bold mt-2 tabular-nums">
+                 <span className="text-base text-slate-400 mr-1 font-normal">Ks</span>
+                 {(46200000).toLocaleString()}
+             </p>
         </div>
          <div className="bg-emerald-600 text-white p-6 rounded-lg">
              <h4 className="text-emerald-200 text-sm font-medium uppercase tracking-wider">Net Income Estimate</h4>
-             <p className="text-2xl font-bold mt-2">$9,700.00</p>
+             <p className="text-2xl font-bold mt-2 tabular-nums">
+                <span className="text-base text-emerald-200 mr-1 font-normal">Ks</span>
+                {(29100000).toLocaleString()}
+             </p>
         </div>
       </div>
 
@@ -60,11 +69,21 @@ export const Accounting: React.FC<AccountingProps> = ({ glEntries }) => {
                             <td className="px-6 py-4 text-slate-500">{entry.entry_date}</td>
                             <td className="px-6 py-4 font-mono text-slate-600">{entry.account_code}</td>
                             <td className="px-6 py-4 text-slate-900">{entry.description}</td>
-                            <td className="px-6 py-4 text-right text-slate-900">
-                                {entry.debit > 0 ? `$${entry.debit.toLocaleString()}` : '-'}
+                            <td className="px-6 py-4 text-right text-slate-900 tabular-nums">
+                                {entry.debit > 0 ? (
+                                    <>
+                                        <span className="text-xs text-slate-400 mr-1">Ks</span>
+                                        {entry.debit.toLocaleString()}
+                                    </>
+                                ) : '-'}
                             </td>
-                             <td className="px-6 py-4 text-right text-slate-900">
-                                {entry.credit > 0 ? `$${entry.credit.toLocaleString()}` : '-'}
+                             <td className="px-6 py-4 text-right text-slate-900 tabular-nums">
+                                {entry.credit > 0 ? (
+                                    <>
+                                        <span className="text-xs text-slate-400 mr-1">Ks</span>
+                                        {entry.credit.toLocaleString()}
+                                    </>
+                                ) : '-'}
                             </td>
                         </tr>
                     ))}

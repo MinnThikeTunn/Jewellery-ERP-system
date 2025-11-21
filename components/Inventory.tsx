@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { InventoryItem, ItemType, ItemStatus } from '../types';
 import { Search, Filter, Plus, AlertCircle, CheckCircle, Tag, Pencil, Trash2, X } from 'lucide-react';
@@ -150,8 +151,14 @@ export const Inventory: React.FC<InventoryProps> = ({ items, onAddItem, onUpdate
                       {item.qty_available}
                     </span>
                   </td>
-                  <td className="px-6 py-4 text-right text-slate-600">${item.landed_cost.toLocaleString()}</td>
-                  <td className="px-6 py-4 text-right text-slate-900 font-medium">${item.retail_price.toLocaleString()}</td>
+                  <td className="px-6 py-4 text-right text-slate-600 tabular-nums">
+                     <span className="text-xs text-slate-400 mr-1">Ks</span>
+                     {item.landed_cost.toLocaleString()}
+                  </td>
+                  <td className="px-6 py-4 text-right text-slate-900 font-medium tabular-nums">
+                    <span className="text-xs text-slate-400 mr-1">Ks</span>
+                    {item.retail_price.toLocaleString()}
+                  </td>
                   <td className="px-6 py-4">
                     <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium
                       ${item.status === ItemStatus.IN_STOCK ? 'bg-emerald-100 text-emerald-700' : 
@@ -246,7 +253,7 @@ export const Inventory: React.FC<InventoryProps> = ({ items, onAddItem, onUpdate
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-slate-700 mb-1">Landed Cost</label>
+                  <label className="block text-xs font-medium text-slate-700 mb-1">Landed Cost (Ks)</label>
                   <input 
                     type="number" 
                     className="w-full border border-slate-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-amber-500 focus:outline-none"
@@ -255,7 +262,7 @@ export const Inventory: React.FC<InventoryProps> = ({ items, onAddItem, onUpdate
                   />
                 </div>
                  <div>
-                  <label className="block text-xs font-medium text-slate-700 mb-1">Retail Price</label>
+                  <label className="block text-xs font-medium text-slate-700 mb-1">Retail Price (Ks)</label>
                   <input 
                     type="number" 
                     className="w-full border border-slate-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-amber-500 focus:outline-none"

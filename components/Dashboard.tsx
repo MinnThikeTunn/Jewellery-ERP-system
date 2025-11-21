@@ -43,13 +43,21 @@ export const Dashboard: React.FC<DashboardProps> = ({ inventory, rawMaterials, p
   ];
 
   const salesTrendData = [
-    { month: 'Jul', sales: 4000, profit: 2400 },
-    { month: 'Aug', sales: 3000, profit: 1398 },
-    { month: 'Sep', sales: 2000, profit: 9800 },
-    { month: 'Oct', sales: 2780, profit: 3908 },
-    { month: 'Nov', sales: 1890, profit: 4800 },
-    { month: 'Dec', sales: 2390, profit: 3800 },
+    { month: 'Jul', sales: 12000000, profit: 7200000 },
+    { month: 'Aug', sales: 9000000, profit: 4194000 },
+    { month: 'Sep', sales: 6000000, profit: 29400000 },
+    { month: 'Oct', sales: 8340000, profit: 11724000 },
+    { month: 'Nov', sales: 5670000, profit: 14400000 },
+    { month: 'Dec', sales: 7170000, profit: 11400000 },
   ];
+
+  // Helper component for currency display
+  const MoneyDisplay = ({ amount }: { amount: number }) => (
+    <span className="tabular-nums tracking-tight">
+      <span className="text-slate-400 text-base font-normal mr-1">Ks</span>
+      {amount.toLocaleString()}
+    </span>
+  );
 
   return (
     <div className="space-y-6">
@@ -68,7 +76,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ inventory, rawMaterials, p
             </div>
           </div>
           <p className="text-2xl font-bold text-slate-900">
-            ${(totalInventoryValue + totalRawValue).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+            <MoneyDisplay amount={totalInventoryValue + totalRawValue} />
           </p>
           <p className="text-xs text-emerald-600 mt-1">+2.5% from last month</p>
         </div>
@@ -92,7 +100,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ inventory, rawMaterials, p
             </div>
           </div>
           <p className="text-2xl font-bold text-slate-900">
-            ${openPOValue.toLocaleString()}
+             <MoneyDisplay amount={openPOValue} />
           </p>
           <p className="text-xs text-slate-500 mt-1">Pending receiving</p>
         </div>
@@ -104,7 +112,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ inventory, rawMaterials, p
               <TrendingUp size={20} />
             </div>
           </div>
-          <p className="text-2xl font-bold text-slate-900">$12,450.00</p>
+          <p className="text-2xl font-bold text-slate-900">
+            <MoneyDisplay amount={37350000} />
+          </p>
           <p className="text-xs text-indigo-600 mt-1">Est. current month</p>
         </div>
       </div>
@@ -119,9 +129,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ inventory, rawMaterials, p
               <BarChart data={valuationData}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} />
                 <XAxis dataKey="name" tick={{fontSize: 12}} />
-                <YAxis tick={{fontSize: 12}} />
+                <YAxis tick={{fontSize: 11}} tickFormatter={(val) => `${(val / 1000000).toFixed(1)}M`} />
                 <Tooltip 
-                  formatter={(value: number) => [`$${value.toLocaleString()}`, 'Value']}
+                  formatter={(value: number) => [`Ks ${value.toLocaleString()}`, 'Value']}
                   contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
                 />
                 <Bar dataKey="value" fill="#d97706" radius={[4, 4, 0, 0]} barSize={40} />
@@ -138,8 +148,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ inventory, rawMaterials, p
               <LineChart data={salesTrendData}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} />
                 <XAxis dataKey="month" tick={{fontSize: 12}} />
-                <YAxis tick={{fontSize: 12}} />
+                <YAxis tick={{fontSize: 11}} tickFormatter={(val) => `${(val / 1000000).toFixed(1)}M`} />
                 <Tooltip 
+                   formatter={(value: number) => [`Ks ${value.toLocaleString()}`, 'Amount']}
                    contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
                 />
                 <Legend />
