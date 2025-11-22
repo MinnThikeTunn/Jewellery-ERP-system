@@ -36,14 +36,15 @@ const NavItem = ({ to, icon: Icon, label }: { to: string, icon: any, label: stri
   return (
     <Link 
       to={to} 
-      className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 ${
+      className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group relative overflow-hidden ${
         isActive 
-          ? 'bg-amber-500 text-white shadow-lg shadow-amber-500/20' 
-          : 'text-slate-400 hover:bg-slate-800 hover:text-white'
+          ? 'bg-gradient-to-r from-cyan-500/20 to-blue-500/10 text-cyan-300 shadow-[0_0_20px_rgba(6,182,212,0.15)] border border-cyan-500/20' 
+          : 'text-slate-400 hover:text-white hover:bg-white/5 border border-transparent'
       }`}
     >
-      <Icon size={20} />
-      <span className="font-medium">{label}</span>
+      <div className={`absolute inset-0 bg-gradient-to-r from-cyan-500/10 to-transparent opacity-0 transition-opacity duration-300 ${isActive ? 'opacity-100' : 'group-hover:opacity-100'}`} />
+      <Icon size={20} className={`relative z-10 ${isActive ? 'text-cyan-400' : 'text-slate-500 group-hover:text-slate-300'}`} />
+      <span className="font-medium relative z-10">{label}</span>
     </Link>
   );
 };
@@ -52,31 +53,38 @@ const Layout = ({ children, onSeed }: { children?: React.ReactNode, onSeed: () =
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
-    <div className="flex h-screen bg-slate-50 overflow-hidden">
+    <div className="flex h-screen bg-[conic-gradient(at_top_left,_var(--tw-gradient-stops))] from-slate-900 via-slate-950 to-slate-900 text-slate-200 overflow-hidden font-sans">
+      
+      {/* Background Ambience */}
+      <div className="fixed top-0 left-0 w-full h-full overflow-hidden pointer-events-none z-0">
+        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-cyan-900/20 rounded-full blur-[120px]" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-900/20 rounded-full blur-[120px]" />
+      </div>
+
       {/* Mobile Sidebar Overlay */}
       {sidebarOpen && (
         <div 
-          className="fixed inset-0 bg-black/50 z-20 lg:hidden"
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 lg:hidden"
           onClick={() => setSidebarOpen(false)}
         />
       )}
 
       {/* Sidebar */}
       <aside className={`
-        fixed lg:static inset-y-0 left-0 z-30 w-64 bg-slate-900 text-white transform transition-transform duration-200 ease-in-out
+        fixed lg:static inset-y-0 left-0 z-50 w-72 bg-slate-950/50 backdrop-blur-xl border-r border-white/10 transform transition-transform duration-300 ease-out
         ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
       `}>
-        <div className="p-6 flex items-center justify-between lg:justify-start gap-3">
-          <div className="bg-amber-500 p-2 rounded-lg">
+        <div className="p-8 flex items-center justify-between lg:justify-start gap-4">
+          <div className="bg-gradient-to-br from-cyan-500 to-blue-600 p-2.5 rounded-xl shadow-lg shadow-cyan-500/20">
             <Diamond size={24} className="text-white" />
           </div>
-          <span className="text-xl font-bold tracking-tight">JewelERP</span>
-          <button onClick={() => setSidebarOpen(false)} className="lg:hidden text-slate-400">
+          <span className="text-2xl font-bold tracking-wide text-transparent bg-clip-text bg-gradient-to-r from-white to-slate-400">JewelERP</span>
+          <button onClick={() => setSidebarOpen(false)} className="lg:hidden text-slate-400 hover:text-white">
             <X size={24} />
           </button>
         </div>
 
-        <nav className="px-4 space-y-2 mt-4">
+        <nav className="px-6 space-y-2 mt-2">
           <NavItem to="/" icon={LayoutDashboard} label="Dashboard" />
           <NavItem to="/inventory" icon={Diamond} label="Inventory" />
           <NavItem to="/manufacturing" icon={Hammer} label="Manufacturing" />
@@ -84,20 +92,20 @@ const Layout = ({ children, onSeed }: { children?: React.ReactNode, onSeed: () =
           <NavItem to="/accounting" icon={BarChart3} label="Accounting" />
         </nav>
 
-        <div className="absolute bottom-0 w-full p-6 border-t border-slate-800 space-y-4">
+        <div className="absolute bottom-0 w-full p-8 border-t border-white/5 space-y-6 bg-gradient-to-t from-slate-900/80 to-transparent">
            <button 
              onClick={onSeed}
-             className="w-full flex items-center gap-2 text-xs text-slate-400 hover:text-amber-400 transition-colors"
+             className="w-full flex items-center gap-2 text-xs text-slate-500 hover:text-cyan-400 transition-colors group"
            >
-             <Database size={14} /> Seed Database (Dev)
+             <Database size={14} className="group-hover:scale-110 transition-transform" /> Seed Database (Dev)
            </button>
            
            <div className="flex items-center gap-3 pt-2">
-              <div className="w-10 h-10 rounded-full bg-slate-700 flex items-center justify-center text-sm font-bold">
+              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-slate-700 to-slate-800 border border-white/10 flex items-center justify-center text-sm font-bold text-white shadow-inner">
                 AD
               </div>
               <div>
-                <p className="text-sm font-medium">Admin User</p>
+                <p className="text-sm font-medium text-white">Admin User</p>
                 <p className="text-xs text-slate-500">Owner</p>
               </div>
            </div>
@@ -105,17 +113,19 @@ const Layout = ({ children, onSeed }: { children?: React.ReactNode, onSeed: () =
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 flex flex-col overflow-hidden">
-        <header className="bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between lg:hidden">
-           <button onClick={() => setSidebarOpen(true)} className="text-slate-600">
+      <main className="flex-1 flex flex-col overflow-hidden relative z-10">
+        <header className="bg-white/5 backdrop-blur-md border-b border-white/10 px-6 py-4 flex items-center justify-between lg:hidden">
+           <button onClick={() => setSidebarOpen(true)} className="text-slate-300 hover:text-white">
              <Menu size={24} />
            </button>
-           <span className="font-bold text-slate-800">JewelERP</span>
+           <span className="font-bold text-slate-100">JewelERP</span>
            <div className="w-6" /> {/* Spacer */}
         </header>
 
-        <div className="flex-1 overflow-y-auto p-6 lg:p-8">
-          {children}
+        <div className="flex-1 overflow-y-auto p-6 lg:p-10 scroll-smooth">
+          <div className="max-w-7xl mx-auto">
+            {children}
+          </div>
         </div>
       </main>
     </div>
@@ -141,8 +151,8 @@ const App: React.FC = () => {
       const [invRes, rawRes, vendRes, poRes, glRes] = await Promise.all([
         supabase.from('inventory_items').select('*').order('id', { ascending: false }),
         supabase.from('raw_materials').select('*'),
-        supabase.from('vendors').select('*'),
-        supabase.from('purchase_orders').select('*'),
+        supabase.from('vendors').select('*').order('id', { ascending: true }),
+        supabase.from('purchase_orders').select('*').order('id', { ascending: false }),
         supabase.from('general_ledger_entries').select('*'),
       ]);
 
@@ -187,7 +197,7 @@ const App: React.FC = () => {
     }
   };
 
-  // Handlers
+  // Inventory Handlers
   const handleAddItem = async (item: Omit<InventoryItem, 'id'>) => {
     const tempId = Date.now();
     const optimisticItem = { ...item, id: tempId };
@@ -208,7 +218,6 @@ const App: React.FC = () => {
   };
 
   const handleUpdateItem = async (updatedItem: InventoryItem) => {
-    // Optimistic update
     const originalInventory = [...inventory];
     setInventory(prev => prev.map(item => item.id === updatedItem.id ? updatedItem : item));
 
@@ -230,12 +239,11 @@ const App: React.FC = () => {
     if (error) {
       console.error("Error updating item:", error);
       alert("Failed to update item: " + error.message);
-      setInventory(originalInventory); // Revert
+      setInventory(originalInventory);
     }
   };
 
   const handleDeleteItem = async (id: number) => {
-    // Optimistic delete
     const originalInventory = [...inventory];
     setInventory(prev => prev.filter(item => item.id !== id));
 
@@ -247,10 +255,11 @@ const App: React.FC = () => {
     if (error) {
       console.error("Error deleting item:", error);
       alert("Failed to delete item: " + error.message);
-      setInventory(originalInventory); // Revert
+      setInventory(originalInventory);
     }
   };
 
+  // Manufacturing Handlers
   const handleCreateJob = async (materialId: number, amountUsed: number, newItem: Omit<InventoryItem, 'id'>) => {
     const material = rawMaterials.find(m => m.id === materialId);
     if(!material) return;
@@ -266,7 +275,7 @@ const App: React.FC = () => {
 
     if (matError) {
       alert('Error updating material stock: ' + matError.message);
-      fetchAllData(); // Revert state
+      fetchAllData();
       return;
     }
 
@@ -275,28 +284,112 @@ const App: React.FC = () => {
     alert('Manufacturing Job Recorded Successfully');
   };
 
+  // Purchasing Handlers - Vendors
+  const handleAddVendor = async (vendor: Omit<Vendor, 'id'>) => {
+    const tempId = Date.now();
+    setVendors(prev => [...prev, { ...vendor, id: tempId }]);
+
+    const { data, error } = await supabase
+      .from('vendors')
+      .insert([vendor])
+      .select()
+      .single();
+
+    if (error) {
+      alert('Failed to add vendor: ' + error.message);
+      setVendors(prev => prev.filter(v => v.id !== tempId));
+    } else if (data) {
+      setVendors(prev => prev.map(v => v.id === tempId ? data : v));
+    }
+  };
+
+  const handleDeleteVendor = async (id: number) => {
+    if (!confirm('Are you sure? This might affect existing POs connected to this vendor.')) return;
+
+    const originalVendors = [...vendors];
+    setVendors(prev => prev.filter(v => v.id !== id));
+
+    const { error } = await supabase.from('vendors').delete().eq('id', id);
+
+    if (error) {
+      alert('Failed to delete vendor: ' + error.message);
+      setVendors(originalVendors);
+    }
+  };
+
+  // Purchasing Handlers - Purchase Orders
+  const handleAddPO = async (po: Omit<PurchaseOrder, 'id'>) => {
+    const tempId = Date.now();
+    setPos(prev => [{ ...po, id: tempId }, ...prev]);
+
+    const { data, error } = await supabase
+      .from('purchase_orders')
+      .insert([po])
+      .select()
+      .single();
+
+    if (error) {
+      alert('Failed to add PO: ' + error.message);
+      setPos(prev => prev.filter(p => p.id !== tempId));
+    } else if (data) {
+      setPos(prev => prev.map(p => p.id === tempId ? data : p));
+    }
+  };
+
+  const handleUpdatePO = async (updatedPO: PurchaseOrder) => {
+    const originalPos = [...pos];
+    setPos(prev => prev.map(p => p.id === updatedPO.id ? updatedPO : p));
+
+    const { error } = await supabase
+      .from('purchase_orders')
+      .update(updatedPO)
+      .eq('id', updatedPO.id);
+
+    if (error) {
+      alert('Failed to update PO: ' + error.message);
+      setPos(originalPos);
+    }
+  };
+
+  const handleDeletePO = async (id: number) => {
+    if (!confirm('Are you sure you want to delete this Purchase Order?')) return;
+    
+    const originalPos = [...pos];
+    setPos(prev => prev.filter(p => p.id !== id));
+
+    const { error } = await supabase
+      .from('purchase_orders')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      alert('Failed to delete PO: ' + error.message);
+      setPos(originalPos);
+    }
+  };
+
   return (
     <Router>
       <Layout onSeed={handleSeed}>
         
         {seeding && (
-           <div className="fixed inset-0 bg-black/20 z-50 flex items-center justify-center backdrop-blur-sm">
-             <div className="bg-white p-6 rounded-xl shadow-2xl flex items-center gap-4">
-               <Loader2 className="animate-spin text-amber-500" />
-               <span className="font-medium text-slate-800">Seeding Database...</span>
+           <div className="fixed inset-0 bg-black/60 z-[60] flex items-center justify-center backdrop-blur-md">
+             <div className="bg-slate-900/80 border border-white/10 p-8 rounded-2xl shadow-2xl flex flex-col items-center gap-4">
+               <Loader2 className="animate-spin text-cyan-400 w-10 h-10" />
+               <span className="font-medium text-slate-200">Seeding Database...</span>
              </div>
            </div>
         )}
 
         {/* Error Banner */}
         {error && (
-           <div className="bg-red-50 text-red-800 px-4 py-4 rounded-lg mb-6 text-sm border border-red-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-             <div className="flex items-center gap-2">
+           <div className="bg-red-900/20 border border-red-500/30 backdrop-blur-md text-red-200 px-6 py-4 rounded-xl mb-8 text-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-lg">
+             <div className="flex items-center gap-3">
                 <span>⚠️ {error}</span>
              </div>
              <div className="flex gap-2">
-                <button onClick={fetchAllData} className="flex items-center gap-2 bg-red-100 hover:bg-red-200 px-3 py-1 rounded-md transition-colors text-red-900 font-medium">
-                    <RefreshCw size={14} /> Retry
+                <button onClick={fetchAllData} className="flex items-center gap-2 bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 px-4 py-2 rounded-lg transition-colors text-red-200 font-medium">
+                    <RefreshCw size={16} /> Retry
                 </button>
              </div>
            </div>
@@ -304,27 +397,28 @@ const App: React.FC = () => {
 
         {/* Loading State */}
         {loading && !inventory.length && !error && (
-            <div className="h-[60vh] flex items-center justify-center">
-                <div className="text-center">
-                <Loader2 className="animate-spin h-10 w-10 text-slate-900 mx-auto mb-4" />
-                <p className="text-slate-500">Connecting to JewelERP Backend...</p>
+            <div className="h-[60vh] flex flex-col items-center justify-center gap-4">
+                <div className="relative">
+                  <div className="absolute inset-0 bg-cyan-500/20 blur-xl rounded-full"></div>
+                  <Loader2 className="animate-spin h-12 w-12 text-cyan-400 relative z-10" />
                 </div>
+                <p className="text-slate-400 font-medium animate-pulse">Connecting to JewelERP Backend...</p>
             </div>
         )}
 
         {/* Empty State / Welcome Screen */}
         {!loading && !error && inventory.length === 0 && rawMaterials.length === 0 && (
-           <div className="bg-white border border-slate-200 rounded-xl p-12 text-center mb-8 shadow-sm">
-              <div className="w-16 h-16 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Database size={32} />
+           <div className="bg-white/5 border border-white/10 backdrop-blur-lg rounded-2xl p-16 text-center mb-8 shadow-2xl max-w-2xl mx-auto">
+              <div className="w-20 h-20 bg-gradient-to-br from-amber-500/20 to-orange-600/20 text-amber-400 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner border border-amber-500/20">
+                <Database size={40} />
               </div>
-              <h2 className="text-xl font-bold text-slate-900 mb-2">Database Connected but Empty</h2>
-              <p className="text-slate-500 max-w-md mx-auto mb-6">
-                Your Supabase backend is connected, but no data was found. Would you like to seed it with sample data?
+              <h2 className="text-3xl font-bold text-white mb-4">Database Connected</h2>
+              <p className="text-slate-400 max-w-md mx-auto mb-8 text-lg leading-relaxed">
+                Your Supabase backend is active but empty. Seed it with sample data to visualize the system.
               </p>
               <button 
                 onClick={handleSeed}
-                className="bg-amber-500 hover:bg-amber-600 text-white px-6 py-2 rounded-lg font-medium transition-colors shadow-md shadow-amber-500/20"
+                className="bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 text-white px-8 py-3 rounded-xl font-medium transition-all shadow-lg shadow-amber-900/20 hover:shadow-amber-900/40 transform hover:scale-[1.02]"
               >
                 Initialize Sample Data
               </button>
@@ -357,6 +451,11 @@ const App: React.FC = () => {
             <Purchasing 
               vendors={vendors} 
               purchaseOrders={pos}
+              onAddVendor={handleAddVendor}
+              onDeleteVendor={handleDeleteVendor}
+              onAddPO={handleAddPO}
+              onUpdatePO={handleUpdatePO}
+              onDeletePO={handleDeletePO}
             />
           } />
           <Route path="/accounting" element={

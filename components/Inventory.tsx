@@ -82,15 +82,15 @@ export const Inventory: React.FC<InventoryProps> = ({ items, onAddItem, onUpdate
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+    <div className="space-y-8">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-slate-800">Master Stock Ledger 💎</h1>
-          <p className="text-slate-500">Manage your finished goods and loose stones.</p>
+          <h1 className="text-3xl font-bold text-white tracking-tight">Master Stock Ledger 💎</h1>
+          <p className="text-slate-400 mt-1">Manage your finished goods and loose stones.</p>
         </div>
         <button 
           onClick={handleOpenAdd}
-          className="bg-slate-900 hover:bg-slate-800 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
+          className="bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white px-6 py-2.5 rounded-xl flex items-center gap-2 transition-all shadow-lg shadow-cyan-900/20 border border-white/10 hover:shadow-cyan-500/30 hover:scale-[1.02]"
         >
           <Plus size={18} />
           Add New Item
@@ -98,88 +98,88 @@ export const Inventory: React.FC<InventoryProps> = ({ items, onAddItem, onUpdate
       </div>
 
       {/* Toolbar */}
-      <div className="flex flex-col sm:flex-row gap-4 bg-white p-4 rounded-lg shadow-sm border border-slate-200">
+      <div className="flex flex-col sm:flex-row gap-4 bg-white/5 backdrop-blur-md p-4 rounded-2xl border border-white/10">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
           <input 
             type="text"
             placeholder="Search by SKU or Name..."
-            className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+            className="w-full pl-10 pr-4 py-2.5 bg-slate-900/50 border border-white/10 rounded-xl text-slate-200 focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/50 placeholder:text-slate-600 transition-all"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
-        <button className="flex items-center gap-2 px-4 py-2 border border-slate-300 rounded-lg text-slate-600 hover:bg-slate-50">
+        <button className="flex items-center gap-2 px-6 py-2.5 border border-white/10 rounded-xl text-slate-300 hover:bg-white/10 hover:text-white transition-colors bg-slate-900/50">
           <Filter size={18} />
           Filter
         </button>
       </div>
 
       {/* Table */}
-      <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
+      <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 overflow-hidden shadow-xl">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm">
-            <thead className="bg-slate-50 text-slate-600 font-medium border-b border-slate-200">
+            <thead className="bg-white/5 text-slate-300 font-semibold border-b border-white/10">
               <tr>
-                <th className="px-6 py-4">SKU / Name</th>
-                <th className="px-6 py-4">Type</th>
-                <th className="px-6 py-4">Location</th>
-                <th className="px-6 py-4 text-right">Stock</th>
-                <th className="px-6 py-4 text-right">Cost</th>
-                <th className="px-6 py-4 text-right">Retail</th>
-                <th className="px-6 py-4">Status</th>
-                <th className="px-6 py-4 text-right">Actions</th>
+                <th className="px-6 py-5">SKU / Name</th>
+                <th className="px-6 py-5">Type</th>
+                <th className="px-6 py-5">Location</th>
+                <th className="px-6 py-5 text-right">Stock</th>
+                <th className="px-6 py-5 text-right">Cost</th>
+                <th className="px-6 py-5 text-right">Retail</th>
+                <th className="px-6 py-5">Status</th>
+                <th className="px-6 py-5 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-200">
+            <tbody className="divide-y divide-white/5">
               {filteredItems.map((item) => (
-                <tr key={item.id} className="hover:bg-slate-50 transition-colors group">
-                  <td className="px-6 py-4">
-                    <div className="font-medium text-slate-900">{item.sku}</div>
+                <tr key={item.id} className="hover:bg-white/5 transition-colors group">
+                  <td className="px-6 py-5">
+                    <div className="font-medium text-white">{item.sku}</div>
                     <div className="text-slate-500">{item.name}</div>
                   </td>
-                  <td className="px-6 py-4">
-                    <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-700">
+                  <td className="px-6 py-5">
+                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-slate-800/50 text-slate-300 border border-white/5">
                       <Tag size={12} />
                       {item.item_type}
                     </span>
                   </td>
-                  <td className="px-6 py-4 text-slate-600">{item.location}</td>
-                  <td className="px-6 py-4 text-right font-medium">
-                    <span className={`flex items-center justify-end gap-1 ${item.qty_available <= item.reorder_point ? "text-red-600" : "text-slate-900"}`}>
+                  <td className="px-6 py-5 text-slate-400">{item.location}</td>
+                  <td className="px-6 py-5 text-right font-medium">
+                    <span className={`flex items-center justify-end gap-1 ${item.qty_available <= item.reorder_point ? "text-red-400" : "text-slate-200"}`}>
                       {item.qty_available <= item.reorder_point && <AlertCircle size={14} />}
                       {item.qty_available}
                     </span>
                   </td>
-                  <td className="px-6 py-4 text-right text-slate-600 tabular-nums">
-                     <span className="text-xs text-slate-400 mr-1">Ks</span>
+                  <td className="px-6 py-5 text-right text-slate-300 tabular-nums">
+                     <span className="text-xs text-slate-500 mr-1">Ks</span>
                      {item.landed_cost.toLocaleString()}
                   </td>
-                  <td className="px-6 py-4 text-right text-slate-900 font-medium tabular-nums">
-                    <span className="text-xs text-slate-400 mr-1">Ks</span>
+                  <td className="px-6 py-5 text-right text-white font-medium tabular-nums">
+                    <span className="text-xs text-slate-500 mr-1">Ks</span>
                     {item.retail_price.toLocaleString()}
                   </td>
-                  <td className="px-6 py-4">
-                    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium
-                      ${item.status === ItemStatus.IN_STOCK ? 'bg-emerald-100 text-emerald-700' : 
-                        item.status === ItemStatus.RESERVED ? 'bg-amber-100 text-amber-700' : 
-                        'bg-slate-100 text-slate-600'}`}>
+                  <td className="px-6 py-5">
+                    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border
+                      ${item.status === ItemStatus.IN_STOCK ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 
+                        item.status === ItemStatus.RESERVED ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' : 
+                        'bg-slate-700/30 text-slate-400 border-white/5'}`}>
                       {item.status === ItemStatus.IN_STOCK ? <CheckCircle size={12} /> : <AlertCircle size={12} />}
                       {item.status}
                     </span>
                   </td>
-                  <td className="px-6 py-4 text-right">
+                  <td className="px-6 py-5 text-right">
                     <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                         <button 
                             onClick={() => handleOpenEdit(item)}
-                            className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                            className="p-2 text-slate-400 hover:text-cyan-400 hover:bg-cyan-500/10 rounded-lg transition-colors"
                             title="Edit Item"
                         >
                             <Pencil size={16} />
                         </button>
                         <button 
                             onClick={() => handleDelete(item.id)}
-                            className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                            className="p-2 text-slate-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
                             title="Delete Item"
                         >
                             <Trash2 size={16} />
@@ -192,7 +192,7 @@ export const Inventory: React.FC<InventoryProps> = ({ items, onAddItem, onUpdate
           </table>
         </div>
         {filteredItems.length === 0 && (
-          <div className="p-8 text-center text-slate-500">
+          <div className="p-12 text-center text-slate-500">
             No items found matching your search.
           </div>
         )}
@@ -200,103 +200,103 @@ export const Inventory: React.FC<InventoryProps> = ({ items, onAddItem, onUpdate
 
       {/* Add/Edit Item Modal Overlay */}
       {isModalOpen && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-lg overflow-hidden animate-in fade-in zoom-in duration-200">
-            <div className="px-6 py-4 border-b border-slate-200 flex justify-between items-center bg-slate-50">
-              <h2 className="text-lg font-bold text-slate-800">{editingId ? 'Edit Inventory Item' : 'Add Inventory Item'}</h2>
-              <button onClick={() => setIsModalOpen(false)} className="text-slate-400 hover:text-slate-600">
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[60] p-4">
+          <div className="bg-slate-900/90 border border-white/10 rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden animate-in fade-in zoom-in duration-200">
+            <div className="px-6 py-5 border-b border-white/10 flex justify-between items-center bg-white/5">
+              <h2 className="text-lg font-bold text-white">{editingId ? 'Edit Inventory Item' : 'Add Inventory Item'}</h2>
+              <button onClick={() => setIsModalOpen(false)} className="text-slate-400 hover:text-white transition-colors">
                 <X size={20} />
               </button>
             </div>
-            <div className="p-6 space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+            <div className="p-6 space-y-5">
+              <div className="grid grid-cols-2 gap-5">
                 <div>
-                  <label className="block text-xs font-medium text-slate-700 mb-1">SKU</label>
+                  <label className="block text-xs font-medium text-slate-400 mb-1.5">SKU</label>
                   <input 
                     type="text" 
-                    className="w-full border border-slate-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-amber-500 focus:outline-none transition-shadow"
+                    className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/50 focus:outline-none transition-all"
                     value={formData.sku || ''}
                     onChange={e => setFormData({...formData, sku: e.target.value})}
                     placeholder="e.g. RG-001"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-slate-700 mb-1">Type</label>
+                  <label className="block text-xs font-medium text-slate-400 mb-1.5">Type</label>
                   <select 
-                    className="w-full border border-slate-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-amber-500 focus:outline-none bg-white"
+                    className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/50 focus:outline-none appearance-none"
                     value={formData.item_type}
                     onChange={e => setFormData({...formData, item_type: e.target.value as ItemType})}
                   >
-                    {Object.values(ItemType).map(t => <option key={t} value={t}>{t}</option>)}
+                    {Object.values(ItemType).map(t => <option key={t} value={t} className="bg-slate-900">{t}</option>)}
                   </select>
                 </div>
               </div>
               
               <div>
-                <label className="block text-xs font-medium text-slate-700 mb-1">Item Name</label>
+                <label className="block text-xs font-medium text-slate-400 mb-1.5">Item Name</label>
                 <input 
                   type="text" 
-                  className="w-full border border-slate-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-amber-500 focus:outline-none"
+                  className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/50 focus:outline-none transition-all"
                   value={formData.name || ''}
                   onChange={e => setFormData({...formData, name: e.target.value})}
                 />
               </div>
 
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-3 gap-5">
                  <div>
-                  <label className="block text-xs font-medium text-slate-700 mb-1">Qty</label>
+                  <label className="block text-xs font-medium text-slate-400 mb-1.5">Qty</label>
                   <input 
                     type="number" 
-                    className="w-full border border-slate-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-amber-500 focus:outline-none"
+                    className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/50 focus:outline-none transition-all"
                     value={formData.qty_available}
                     onChange={e => setFormData({...formData, qty_available: Number(e.target.value)})}
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-slate-700 mb-1">Landed Cost (Ks)</label>
+                  <label className="block text-xs font-medium text-slate-400 mb-1.5">Landed Cost (Ks)</label>
                   <input 
                     type="number" 
-                    className="w-full border border-slate-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-amber-500 focus:outline-none"
+                    className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/50 focus:outline-none transition-all"
                     value={formData.landed_cost}
                     onChange={e => setFormData({...formData, landed_cost: Number(e.target.value)})}
                   />
                 </div>
                  <div>
-                  <label className="block text-xs font-medium text-slate-700 mb-1">Retail Price (Ks)</label>
+                  <label className="block text-xs font-medium text-slate-400 mb-1.5">Retail Price (Ks)</label>
                   <input 
                     type="number" 
-                    className="w-full border border-slate-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-amber-500 focus:outline-none"
+                    className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/50 focus:outline-none transition-all"
                     value={formData.retail_price}
                     onChange={e => setFormData({...formData, retail_price: Number(e.target.value)})}
                   />
                 </div>
               </div>
               
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-5">
                  <div>
-                    <label className="block text-xs font-medium text-slate-700 mb-1">Location</label>
+                    <label className="block text-xs font-medium text-slate-400 mb-1.5">Location</label>
                     <input 
                         type="text" 
-                        className="w-full border border-slate-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-amber-500 focus:outline-none"
+                        className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/50 focus:outline-none transition-all"
                         value={formData.location || ''}
                         onChange={e => setFormData({...formData, location: e.target.value})}
                     />
                  </div>
                  <div>
-                    <label className="block text-xs font-medium text-slate-700 mb-1">Status</label>
+                    <label className="block text-xs font-medium text-slate-400 mb-1.5">Status</label>
                     <select 
-                        className="w-full border border-slate-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-amber-500 focus:outline-none bg-white"
+                        className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/50 focus:outline-none appearance-none"
                         value={formData.status}
                         onChange={e => setFormData({...formData, status: e.target.value as ItemStatus})}
                     >
-                        {Object.values(ItemStatus).map(s => <option key={s} value={s}>{s}</option>)}
+                        {Object.values(ItemStatus).map(s => <option key={s} value={s} className="bg-slate-900">{s}</option>)}
                     </select>
                  </div>
               </div>
             </div>
-            <div className="px-6 py-4 bg-slate-50 border-t border-slate-200 flex justify-end gap-3">
-              <button onClick={() => setIsModalOpen(false)} className="px-4 py-2 text-slate-600 hover:text-slate-800 font-medium transition-colors">Cancel</button>
-              <button onClick={handleSave} className="px-4 py-2 bg-slate-900 text-white rounded-lg hover:bg-slate-800 shadow-sm transition-all hover:shadow flex items-center gap-2">
+            <div className="px-6 py-5 bg-white/5 border-t border-white/10 flex justify-end gap-3">
+              <button onClick={() => setIsModalOpen(false)} className="px-5 py-2.5 text-slate-400 hover:text-white font-medium transition-colors">Cancel</button>
+              <button onClick={handleSave} className="px-6 py-2.5 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white rounded-xl shadow-lg shadow-cyan-900/20 hover:shadow-cyan-500/30 border border-white/10 transition-all flex items-center gap-2">
                 {editingId ? <Pencil size={16} /> : <Plus size={16} />}
                 {editingId ? 'Update Item' : 'Save Item'}
               </button>
