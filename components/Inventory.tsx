@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo } from 'react';
 import { InventoryItem, ItemType, ItemStatus } from '../types';
 import { Search, Filter, Plus, AlertCircle, CheckCircle, Tag, Pencil, Trash2, X, DollarSign, ArrowUpDown, ChevronDown, RefreshCcw, MapPin } from 'lucide-react';
@@ -54,6 +53,27 @@ export const Inventory: React.FC<InventoryProps> = ({ items, onAddItem, onUpdate
     const locs = new Set(items.map(i => i.location).filter(Boolean));
     return Array.from(locs).sort();
   }, [items]);
+
+  // --- Helper Functions for Translation ---
+  const getStatusLabel = (status: ItemStatus) => {
+    switch (status) {
+        case ItemStatus.IN_STOCK: return 'လက်ကျန်ရှိ';
+        case ItemStatus.IN_SERVICE: return 'ပြုပြင်ဆဲ';
+        case ItemStatus.SOLD: return 'ရောင်းပြီး';
+        case ItemStatus.RESERVED: return 'ကြိုတင်မှာယူထားသည်';
+        default: return status;
+    }
+  };
+
+  const getTypeLabel = (type: ItemType) => {
+    switch (type) {
+        case ItemType.FINISHED_GOOD: return 'အချောထည်';
+        case ItemType.LOOSE_STONE: return 'ကျောက်';
+        case ItemType.RAW_MATERIAL: return 'ကုန်ကြမ်း';
+        default: return type;
+    }
+  };
+
 
   // --- Main Filter & Sort Logic ---
   const processedItems = useMemo(() => {
@@ -187,15 +207,15 @@ export const Inventory: React.FC<InventoryProps> = ({ items, onAddItem, onUpdate
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-white tracking-tight">Master Stock Ledger 💎</h1>
-          <p className="text-slate-400 mt-1">Manage your finished goods and loose stones.</p>
+          <h1 className="text-3xl font-bold text-white tracking-tight">ကုန်ပစ္စည်း စာရင်းချုပ် 💎</h1>
+          <p className="text-slate-400 mt-1">အချောထည်များနှင့် ကျောက်များကို စီမံခန့်ခွဲရန်</p>
         </div>
         <button 
           onClick={handleOpenAdd}
           className="bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white px-6 py-2.5 rounded-xl flex items-center gap-2 transition-all shadow-lg shadow-cyan-900/20 border border-white/10 hover:shadow-cyan-500/30 hover:scale-[1.02]"
         >
           <Plus size={18} />
-          Add New Item
+          ပစ္စည်းအသစ်ထည့်ရန်
         </button>
       </div>
 
@@ -206,7 +226,7 @@ export const Inventory: React.FC<InventoryProps> = ({ items, onAddItem, onUpdate
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
             <input 
                 type="text"
-                placeholder="Search by SKU or Name..."
+                placeholder="SKU သို့မဟုတ် အမည်ဖြင့် ရှာဖွေရန်..."
                 className="w-full pl-10 pr-4 py-3 bg-white/5 backdrop-blur-md border border-white/10 rounded-xl text-slate-200 focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/50 placeholder:text-slate-500 transition-all shadow-lg"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
@@ -221,7 +241,7 @@ export const Inventory: React.FC<InventoryProps> = ({ items, onAddItem, onUpdate
                 }`}
             >
             <Filter size={18} />
-            Filters
+            စစ်ထုတ်ရန်
             <ChevronDown size={16} className={`transition-transform duration-200 ${showFilters ? 'rotate-180' : ''}`} />
             </button>
         </div>
@@ -232,7 +252,7 @@ export const Inventory: React.FC<InventoryProps> = ({ items, onAddItem, onUpdate
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                     {/* Column 1: Filter Dropdowns */}
                     <div className="space-y-4 md:col-span-1">
-                        <label className="text-xs font-bold text-slate-500 uppercase tracking-wider block">Filter By</label>
+                        <label className="text-xs font-bold text-slate-500 uppercase tracking-wider block">အမျိုးအစားအလိုက် စစ်ထုတ်ရန်</label>
                         
                         <div className="space-y-3">
                             <select 
@@ -241,7 +261,7 @@ export const Inventory: React.FC<InventoryProps> = ({ items, onAddItem, onUpdate
                                 onChange={(e) => setFilterType(e.target.value as ItemType | 'All')}
                             >
                                 <option value="All">All Types</option>
-                                {Object.values(ItemType).map(t => <option key={t} value={t}>{t}</option>)}
+                                {Object.values(ItemType).map(t => <option key={t} value={t}>{getTypeLabel(t)}</option>)}
                             </select>
 
                             <select 
@@ -250,7 +270,7 @@ export const Inventory: React.FC<InventoryProps> = ({ items, onAddItem, onUpdate
                                 onChange={(e) => setFilterStatus(e.target.value as ItemStatus | 'All')}
                             >
                                 <option value="All">All Statuses</option>
-                                {Object.values(ItemStatus).map(s => <option key={s} value={s}>{s}</option>)}
+                                {Object.values(ItemStatus).map(s => <option key={s} value={s}>{getStatusLabel(s)}</option>)}
                             </select>
 
                              <select 
@@ -266,7 +286,7 @@ export const Inventory: React.FC<InventoryProps> = ({ items, onAddItem, onUpdate
 
                     {/* Column 2: Quick Toggles */}
                     <div className="space-y-4 md:col-span-1">
-                         <label className="text-xs font-bold text-slate-500 uppercase tracking-wider block">Quick Views</label>
+                         <label className="text-xs font-bold text-slate-500 uppercase tracking-wider block">အမြန်ကြည့်ရန်</label>
                          <button 
                             onClick={() => setShowLowStockOnly(!showLowStockOnly)}
                             className={`w-full flex items-center justify-between px-4 py-2.5 rounded-lg border text-sm transition-all ${
@@ -275,14 +295,14 @@ export const Inventory: React.FC<InventoryProps> = ({ items, onAddItem, onUpdate
                                 : 'bg-black/20 border-white/10 text-slate-400 hover:bg-white/10'
                             }`}
                         >
-                            <span className="flex items-center gap-2"><AlertCircle size={16}/> Low Stock Alerts</span>
+                            <span className="flex items-center gap-2"><AlertCircle size={16}/> ပစ္စည်းပြတ်လပ်မှု သတိပေးချက်များ</span>
                             {showLowStockOnly && <CheckCircle size={14} />}
                          </button>
                     </div>
 
                     {/* Column 3: Sorting */}
                     <div className="space-y-4 md:col-span-2">
-                        <label className="text-xs font-bold text-slate-500 uppercase tracking-wider block">Sort Order</label>
+                        <label className="text-xs font-bold text-slate-500 uppercase tracking-wider block">စီရန်</label>
                         <div className="grid grid-cols-2 gap-3">
                              {/* Stock Sort */}
                              <button 
@@ -291,7 +311,7 @@ export const Inventory: React.FC<InventoryProps> = ({ items, onAddItem, onUpdate
                                     sortField === 'qty_available' ? 'bg-blue-500/20 border-blue-500/50 text-blue-300' : 'bg-black/20 border-white/10 text-slate-400 hover:bg-white/10'
                                 }`}
                              >
-                                <span className="flex items-center gap-2">Stock Level</span>
+                                <span className="flex items-center gap-2">လက်ကျန်အရေအတွက်</span>
                                 {sortField === 'qty_available' ? (sortOrder === 'asc' ? <ArrowUpDown className="rotate-180" size={14}/> : <ArrowUpDown size={14}/>) : null}
                              </button>
 
@@ -302,7 +322,7 @@ export const Inventory: React.FC<InventoryProps> = ({ items, onAddItem, onUpdate
                                     sortField === 'retail_price' ? 'bg-emerald-500/20 border-emerald-500/50 text-emerald-300' : 'bg-black/20 border-white/10 text-slate-400 hover:bg-white/10'
                                 }`}
                              >
-                                <span className="flex items-center gap-2">Retail Price</span>
+                                <span className="flex items-center gap-2">အရောင်းစျေး</span>
                                 {sortField === 'retail_price' ? (sortOrder === 'asc' ? <ArrowUpDown className="rotate-180" size={14}/> : <ArrowUpDown size={14}/>) : null}
                              </button>
 
@@ -313,7 +333,7 @@ export const Inventory: React.FC<InventoryProps> = ({ items, onAddItem, onUpdate
                                     sortField === 'landed_cost' ? 'bg-purple-500/20 border-purple-500/50 text-purple-300' : 'bg-black/20 border-white/10 text-slate-400 hover:bg-white/10'
                                 }`}
                              >
-                                <span className="flex items-center gap-2">Landed Cost</span>
+                                <span className="flex items-center gap-2">အရင်းစျေး</span>
                                 {sortField === 'landed_cost' ? (sortOrder === 'asc' ? <ArrowUpDown className="rotate-180" size={14}/> : <ArrowUpDown size={14}/>) : null}
                              </button>
                         </div>
@@ -322,13 +342,13 @@ export const Inventory: React.FC<InventoryProps> = ({ items, onAddItem, onUpdate
 
                 <div className="mt-6 pt-4 border-t border-white/10 flex justify-between items-center">
                     <p className="text-xs text-slate-500">
-                        Showing {processedItems.length} results
+                        ရလဒ် {processedItems.length} ခု ပြသနေပါသည်
                     </p>
                     <button 
                         onClick={resetFilters}
                         className="text-xs flex items-center gap-1.5 text-slate-400 hover:text-white transition-colors"
                     >
-                        <RefreshCcw size={12} /> Reset All Filters
+                        <RefreshCcw size={12} /> စစ်ထုတ်မှုများအားလုံး ဖျက်မည်
                     </button>
                 </div>
             </div>
@@ -341,14 +361,14 @@ export const Inventory: React.FC<InventoryProps> = ({ items, onAddItem, onUpdate
           <table className="w-full text-left text-sm">
             <thead className="bg-white/5 text-slate-300 font-semibold border-b border-white/10">
               <tr>
-                <th className="px-6 py-5">SKU / Name</th>
-                <th className="px-6 py-5">Type</th>
-                <th className="px-6 py-5">Location</th>
-                <th className="px-6 py-5 text-right">Stock</th>
-                <th className="px-6 py-5 text-right">Cost</th>
-                <th className="px-6 py-5 text-right">Retail</th>
-                <th className="px-6 py-5">Status</th>
-                <th className="px-6 py-5 text-right">Actions</th>
+                <th className="px-6 py-5">SKU / အမည်</th>
+                <th className="px-6 py-5">အမျိုးအစား</th>
+                <th className="px-6 py-5">နေရာ</th>
+                <th className="px-6 py-5 text-right">လက်ကျန်</th>
+                <th className="px-6 py-5 text-right">အရင်း</th>
+                <th className="px-6 py-5 text-right">အရောင်း</th>
+                <th className="px-6 py-5">အခြေအနေ</th>
+                <th className="px-6 py-5 text-right">လုပ်ဆောင်ချက်</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-white/5">
@@ -361,7 +381,7 @@ export const Inventory: React.FC<InventoryProps> = ({ items, onAddItem, onUpdate
                   <td className="px-6 py-5">
                     <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-slate-800/50 text-slate-300 border border-white/5">
                       <Tag size={12} />
-                      {item.item_type}
+                      {getTypeLabel(item.item_type)}
                     </span>
                   </td>
                   <td className="px-6 py-5 text-slate-400 flex items-center gap-1">
@@ -388,7 +408,7 @@ export const Inventory: React.FC<InventoryProps> = ({ items, onAddItem, onUpdate
                         item.status === ItemStatus.RESERVED ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' : 
                         'bg-slate-700/30 text-slate-400 border-white/5'}`}>
                       {item.status === ItemStatus.IN_STOCK ? <CheckCircle size={12} /> : <AlertCircle size={12} />}
-                      {item.status}
+                      {getStatusLabel(item.status)}
                     </span>
                   </td>
                   <td className="px-6 py-5 text-right">
@@ -427,9 +447,9 @@ export const Inventory: React.FC<InventoryProps> = ({ items, onAddItem, onUpdate
              <div className="flex justify-center mb-4">
                  <Filter size={48} className="text-slate-700" />
              </div>
-             <p className="text-lg font-medium text-slate-400">No items found</p>
-             <p className="text-sm">Try adjusting your filters or search terms.</p>
-             <button onClick={resetFilters} className="mt-4 text-cyan-400 hover:underline">Clear all filters</button>
+             <p className="text-lg font-medium text-slate-400">မည်သည့်ပစ္စည်းမျှ မတွေ့ပါ</p>
+             <p className="text-sm">စစ်ထုတ်မှု သို့မဟုတ် ရှာဖွေမှုစကားလုံးများကို ပြင်ဆင်ကြည့်ပါ</p>
+             <button onClick={resetFilters} className="mt-4 text-cyan-400 hover:underline">စစ်ထုတ်မှုများအားလုံး ဖျက်မည်</button>
           </div>
         )}
       </div>
@@ -439,7 +459,7 @@ export const Inventory: React.FC<InventoryProps> = ({ items, onAddItem, onUpdate
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[60] p-4">
           <div className="bg-slate-900/90 border border-white/10 rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden animate-in fade-in zoom-in duration-200">
             <div className="px-6 py-5 border-b border-white/10 flex justify-between items-center bg-white/5">
-              <h2 className="text-lg font-bold text-white">{editingId ? 'Edit Inventory Item' : 'Add Inventory Item'}</h2>
+              <h2 className="text-lg font-bold text-white">{editingId ? 'ကုန်ပစ္စည်းပြင်ဆင်ရန်' : 'ကုန်ပစ္စည်းအသစ်ထည့်ရန်'}</h2>
               <button onClick={() => setIsModalOpen(false)} className="text-slate-400 hover:text-white transition-colors">
                 <X size={20} />
               </button>
@@ -457,19 +477,19 @@ export const Inventory: React.FC<InventoryProps> = ({ items, onAddItem, onUpdate
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-slate-400 mb-1.5">Type</label>
+                  <label className="block text-xs font-medium text-slate-400 mb-1.5">အမျိုးအစား</label>
                   <select 
                     className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/50 focus:outline-none appearance-none"
                     value={formData.item_type}
                     onChange={e => setFormData({...formData, item_type: e.target.value as ItemType})}
                   >
-                    {Object.values(ItemType).map(t => <option key={t} value={t} className="bg-slate-900">{t}</option>)}
+                    {Object.values(ItemType).map(t => <option key={t} value={t} className="bg-slate-900">{getTypeLabel(t)}</option>)}
                   </select>
                 </div>
               </div>
               
               <div>
-                <label className="block text-xs font-medium text-slate-400 mb-1.5">Item Name</label>
+                <label className="block text-xs font-medium text-slate-400 mb-1.5">ပစ္စည်းအမည်</label>
                 <input 
                   type="text" 
                   className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/50 focus:outline-none transition-all"
@@ -480,7 +500,7 @@ export const Inventory: React.FC<InventoryProps> = ({ items, onAddItem, onUpdate
 
               <div className="grid grid-cols-3 gap-5">
                  <div>
-                  <label className="block text-xs font-medium text-slate-400 mb-1.5">Qty</label>
+                  <label className="block text-xs font-medium text-slate-400 mb-1.5">အရေအတွက်</label>
                   <input 
                     type="number" 
                     className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/50 focus:outline-none transition-all"
@@ -496,7 +516,7 @@ export const Inventory: React.FC<InventoryProps> = ({ items, onAddItem, onUpdate
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-slate-400 mb-1.5">Landed Cost (Ks)</label>
+                  <label className="block text-xs font-medium text-slate-400 mb-1.5">အရင်းစျေး (Ks)</label>
                   <input 
                     type="number" 
                     className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/50 focus:outline-none transition-all"
@@ -505,7 +525,7 @@ export const Inventory: React.FC<InventoryProps> = ({ items, onAddItem, onUpdate
                   />
                 </div>
                  <div>
-                  <label className="block text-xs font-medium text-slate-400 mb-1.5">Retail Price (Ks)</label>
+                  <label className="block text-xs font-medium text-slate-400 mb-1.5">အရောင်းစျေး (Ks)</label>
                   <input 
                     type="number" 
                     className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/50 focus:outline-none transition-all"
@@ -517,7 +537,7 @@ export const Inventory: React.FC<InventoryProps> = ({ items, onAddItem, onUpdate
               
               <div className="grid grid-cols-2 gap-5">
                  <div>
-                    <label className="block text-xs font-medium text-slate-400 mb-1.5">Location</label>
+                    <label className="block text-xs font-medium text-slate-400 mb-1.5">နေရာ</label>
                     <input 
                         type="text" 
                         className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/50 focus:outline-none transition-all"
@@ -526,7 +546,7 @@ export const Inventory: React.FC<InventoryProps> = ({ items, onAddItem, onUpdate
                     />
                  </div>
                  <div>
-                    <label className="block text-xs font-medium text-slate-400 mb-1.5">Reorder Point (Alert)</label>
+                    <label className="block text-xs font-medium text-slate-400 mb-1.5">သတိပေးချက်အမှတ်</label>
                     <input 
                         type="number" 
                         className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/50 focus:outline-none transition-all"
@@ -537,21 +557,21 @@ export const Inventory: React.FC<InventoryProps> = ({ items, onAddItem, onUpdate
               </div>
               
                <div>
-                    <label className="block text-xs font-medium text-slate-400 mb-1.5">Status</label>
+                    <label className="block text-xs font-medium text-slate-400 mb-1.5">အခြေအနေ</label>
                     <select 
                         className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/50 focus:outline-none appearance-none"
                         value={formData.status}
                         onChange={e => setFormData({...formData, status: e.target.value as ItemStatus})}
                     >
-                        {Object.values(ItemStatus).map(s => <option key={s} value={s} className="bg-slate-900">{s}</option>)}
+                        {Object.values(ItemStatus).map(s => <option key={s} value={s} className="bg-slate-900">{getStatusLabel(s)}</option>)}
                     </select>
                  </div>
             </div>
             <div className="px-6 py-5 bg-white/5 border-t border-white/10 flex justify-end gap-3">
-              <button onClick={() => setIsModalOpen(false)} className="px-5 py-2.5 text-slate-400 hover:text-white font-medium transition-colors">Cancel</button>
+              <button onClick={() => setIsModalOpen(false)} className="px-5 py-2.5 text-slate-400 hover:text-white font-medium transition-colors">မလုပ်တော့ပါ</button>
               <button onClick={handleSave} className="px-6 py-2.5 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white rounded-xl shadow-lg shadow-cyan-900/20 hover:shadow-cyan-500/30 border border-white/10 transition-all flex items-center gap-2">
                 {editingId ? <Pencil size={16} /> : <Plus size={16} />}
-                {editingId ? 'Update Item' : 'Save Item'}
+                {editingId ? 'ပြင်ဆင်မည်' : 'သိမ်းဆည်းမည်'}
               </button>
             </div>
           </div>
@@ -564,7 +584,7 @@ export const Inventory: React.FC<InventoryProps> = ({ items, onAddItem, onUpdate
             <div className="bg-slate-900/90 border border-white/10 rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-200">
                 <div className="px-6 py-5 border-b border-white/10 flex justify-between items-center bg-white/5">
                     <div>
-                        <h2 className="text-lg font-bold text-white">Record Sale</h2>
+                        <h2 className="text-lg font-bold text-white">အရောင်းမှတ်တမ်းတင်ရန်</h2>
                         <p className="text-xs text-slate-400">{sellingItem.sku} - {sellingItem.name}</p>
                     </div>
                     <button onClick={() => setIsSellModalOpen(false)} className="text-slate-400 hover:text-white transition-colors"><X size={20} /></button>
@@ -572,11 +592,11 @@ export const Inventory: React.FC<InventoryProps> = ({ items, onAddItem, onUpdate
                 <div className="p-6 space-y-4">
                      <div className="bg-emerald-500/10 border border-emerald-500/20 p-4 rounded-xl flex gap-3">
                         <DollarSign className="text-emerald-400 shrink-0" />
-                        <p className="text-sm text-emerald-200">Recording a sale will deduct inventory and create <b>Revenue</b> & <b>COGS</b> entries in the General Ledger.</p>
+                        <p className="text-sm text-emerald-200">အရောင်းမှတ်တမ်းတင်ခြင်းသည် စာရင်းမှ ပစ္စည်းကို လျှော့ချပြီး <b>ဝင်ငွေ</b> နှင့် <b>COGS</b> ကို စာရင်းချုပ်တွင် ထည့်သွင်းပေးမည်ဖြစ်သည်။</p>
                      </div>
 
                      <div>
-                        <label className="block text-xs font-medium text-slate-400 mb-1.5">Quantity Sold</label>
+                        <label className="block text-xs font-medium text-slate-400 mb-1.5">ရောင်းရသည့် အရေအတွက်</label>
                         <input 
                             type="number" 
                             className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:border-cyan-500/50 focus:outline-none"
@@ -585,11 +605,11 @@ export const Inventory: React.FC<InventoryProps> = ({ items, onAddItem, onUpdate
                             min={1}
                             onChange={(e) => setSellQty(Number(e.target.value))}
                         />
-                        <p className="text-xs text-right text-slate-500 mt-1">Available: {sellingItem.qty_available}</p>
+                        <p className="text-xs text-right text-slate-500 mt-1">လက်ကျန်: {sellingItem.qty_available}</p>
                      </div>
 
                      <div>
-                        <label className="block text-xs font-medium text-slate-400 mb-1.5">Unit Sale Price (Kyats)</label>
+                        <label className="block text-xs font-medium text-slate-400 mb-1.5">ရောင်းစျေး (Ks)</label>
                         <input 
                             type="number" 
                             className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:border-cyan-500/50 focus:outline-none"
@@ -599,14 +619,14 @@ export const Inventory: React.FC<InventoryProps> = ({ items, onAddItem, onUpdate
                      </div>
 
                      <div className="pt-2 border-t border-white/10 flex justify-between items-center">
-                        <span className="text-slate-400 text-sm">Total Revenue:</span>
+                        <span className="text-slate-400 text-sm">စုစုပေါင်း ဝင်ငွေ:</span>
                         <span className="text-xl font-bold text-emerald-400 tabular-nums">Ks {(sellQty * sellPrice).toLocaleString()}</span>
                      </div>
                 </div>
                 <div className="px-6 py-4 bg-white/5 border-t border-white/10 flex justify-end gap-3">
-                    <button onClick={() => setIsSellModalOpen(false)} className="px-4 py-2 text-slate-400 hover:text-white transition-colors">Cancel</button>
+                    <button onClick={() => setIsSellModalOpen(false)} className="px-4 py-2 text-slate-400 hover:text-white transition-colors">မလုပ်တော့ပါ</button>
                     <button onClick={handleConfirmSell} className="px-6 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg transition-colors font-medium flex items-center gap-2 shadow-lg shadow-emerald-900/20">
-                         <CheckCircle size={18} /> Confirm Sale
+                         <CheckCircle size={18} /> အရောင်းအတည်ပြုမည်
                     </button>
                 </div>
             </div>

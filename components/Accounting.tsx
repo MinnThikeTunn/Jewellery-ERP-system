@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { GLEntry } from '../types';
 import { BookOpen, TrendingUp, PieChart, X } from 'lucide-react';
@@ -36,15 +35,15 @@ export const Accounting: React.FC<AccountingProps> = ({ glEntries }) => {
     <div className="space-y-8">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold text-white tracking-tight">Accounting (GL) 📊</h1>
-          <p className="text-slate-400 mt-1">Financial tracking and reports.</p>
+          <h1 className="text-3xl font-bold text-white tracking-tight">စာရင်းကိုင် (GL) 📊</h1>
+          <p className="text-slate-400 mt-1">ငွေကြေးဆိုင်ရာ မှတ်တမ်းများနှင့် အစီရင်ခံစာများ</p>
         </div>
         <div className="flex gap-2">
              <button 
                 onClick={() => setShowReport(true)}
                 className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-emerald-600/20 to-teal-600/20 border border-emerald-500/30 hover:bg-emerald-600/30 rounded-lg text-emerald-300 transition-colors text-sm font-medium"
             >
-                <PieChart size={16} /> P&L Report
+                <PieChart size={16} /> အရှုံးအမြတ် စာရင်း
             </button>
         </div>
       </div>
@@ -53,7 +52,7 @@ export const Accounting: React.FC<AccountingProps> = ({ glEntries }) => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="bg-white/5 backdrop-blur-xl border border-white/10 p-6 rounded-2xl shadow-xl relative overflow-hidden group">
              <div className="absolute -right-4 -top-4 w-24 h-24 bg-red-500/10 rounded-full blur-2xl group-hover:bg-red-500/20 transition-colors"></div>
-             <h4 className="text-slate-400 text-xs font-bold uppercase tracking-widest mb-1">Total Debits (Oct)</h4>
+             <h4 className="text-slate-400 text-xs font-bold uppercase tracking-widest mb-1">စုစုပေါင်း နှုတ်ငွေ (လစဉ်)</h4>
              <p className="text-3xl font-bold mt-2 tabular-nums text-white relative z-10">
                 <span className="text-lg text-slate-600 mr-1 font-normal">Ks</span>
                 {totalDebits.toLocaleString()}
@@ -61,7 +60,7 @@ export const Accounting: React.FC<AccountingProps> = ({ glEntries }) => {
         </div>
          <div className="bg-white/5 backdrop-blur-xl border border-white/10 p-6 rounded-2xl shadow-xl relative overflow-hidden group">
              <div className="absolute -right-4 -top-4 w-24 h-24 bg-blue-500/10 rounded-full blur-2xl group-hover:bg-blue-500/20 transition-colors"></div>
-             <h4 className="text-slate-400 text-xs font-bold uppercase tracking-widest mb-1">Total Credits (Oct)</h4>
+             <h4 className="text-slate-400 text-xs font-bold uppercase tracking-widest mb-1">စုစုပေါင်း ဝင်ငွေ (လစဉ်)</h4>
              <p className="text-3xl font-bold mt-2 tabular-nums text-white relative z-10">
                  <span className="text-lg text-slate-600 mr-1 font-normal">Ks</span>
                  {totalCredits.toLocaleString()}
@@ -71,7 +70,7 @@ export const Accounting: React.FC<AccountingProps> = ({ glEntries }) => {
              <div className="absolute top-0 right-0 p-4 opacity-10">
                 <TrendingUp size={48} className="text-emerald-400" />
              </div>
-             <h4 className="text-emerald-400/80 text-xs font-bold uppercase tracking-widest mb-1">Net Income Estimate</h4>
+             <h4 className="text-emerald-400/80 text-xs font-bold uppercase tracking-widest mb-1">ခန့်မှန်း အသားတင်ဝင်ငွေ</h4>
              <p className="text-3xl font-bold mt-2 tabular-nums text-white relative z-10">
                 <span className="text-lg text-emerald-500/50 mr-1 font-normal">Ks</span>
                 {netIncome.toLocaleString()}
@@ -85,17 +84,17 @@ export const Accounting: React.FC<AccountingProps> = ({ glEntries }) => {
             <div className="p-2 bg-slate-800/50 rounded-lg border border-white/5">
                 <BookOpen size={18} className="text-purple-400" />
             </div>
-            <h3 className="font-semibold text-white">General Ledger Entries</h3>
+            <h3 className="font-semibold text-white">အထွေထွေ စာရင်းချုပ် မှတ်တမ်းများ</h3>
         </div>
         <div className="overflow-x-auto">
             <table className="w-full text-left text-sm">
                 <thead className="bg-white/5 text-slate-400 font-medium border-b border-white/10">
                     <tr>
-                        <th className="px-6 py-4">Date</th>
-                        <th className="px-6 py-4">Account</th>
-                        <th className="px-6 py-4">Description</th>
-                        <th className="px-6 py-4 text-right">Debit</th>
-                        <th className="px-6 py-4 text-right">Credit</th>
+                        <th className="px-6 py-4">နေ့စွဲ</th>
+                        <th className="px-6 py-4">စာရင်းခေါင်းစဉ်</th>
+                        <th className="px-6 py-4">အကြောင်းအရာ</th>
+                        <th className="px-6 py-4 text-right">နှုတ်ငွေ</th>
+                        <th className="px-6 py-4 text-right">ဝင်ငွေ</th>
                     </tr>
                 </thead>
                 <tbody className="divide-y divide-white/5">
@@ -135,32 +134,32 @@ export const Accounting: React.FC<AccountingProps> = ({ glEntries }) => {
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[60] p-4">
              <div className="bg-slate-900/90 border border-white/10 rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden animate-in fade-in zoom-in duration-200">
                 <div className="px-6 py-5 border-b border-white/10 flex justify-between items-center bg-white/5">
-                    <h2 className="text-lg font-bold text-white">Profit & Loss Summary</h2>
+                    <h2 className="text-lg font-bold text-white">အရှုံးအမြတ် အနှစ်ချုပ်</h2>
                     <button onClick={() => setShowReport(false)} className="text-slate-400 hover:text-white transition-colors"><X size={20} /></button>
                 </div>
                 <div className="p-8 space-y-6">
                     <div className="flex justify-between items-center border-b border-white/10 pb-4">
-                        <span className="text-slate-400">Total Revenue (Sales)</span>
+                        <span className="text-slate-400">စုစုပေါင်း ဝင်ငွေ (အရောင်း)</span>
                         <span className="text-emerald-400 font-medium text-lg tabular-nums">Ks {salesIncome.toLocaleString()}</span>
                     </div>
                     <div className="flex justify-between items-center border-b border-white/10 pb-4">
-                        <span className="text-slate-400">Cost of Goods Sold</span>
+                        <span className="text-slate-400">ရောင်းချရသော ကုန်ပစ္စည်း၏ တန်ဖိုး (COGS)</span>
                         <span className="text-red-400 font-medium text-lg tabular-nums">- Ks {cogs.toLocaleString()}</span>
                     </div>
                     <div className="flex justify-between items-center pt-2">
-                        <span className="text-white font-semibold">Gross Profit</span>
+                        <span className="text-white font-semibold">အကြမ်းဖျင်း အမြတ်</span>
                         <span className="text-white font-bold text-xl tabular-nums">Ks {grossProfit.toLocaleString()}</span>
                     </div>
                     
                     <div className="bg-white/5 p-4 rounded-xl space-y-3 mt-4">
                         <div className="flex justify-between items-center">
-                            <span className="text-slate-500 text-sm">Operating Expenses</span>
+                            <span className="text-slate-500 text-sm">လုပ်ငန်းလည်ပတ်စရိတ်များ</span>
                             <span className="text-red-400/80 font-medium tabular-nums">- Ks {expenses.toLocaleString()}</span>
                         </div>
                     </div>
 
                     <div className="pt-4 border-t border-white/10 flex justify-between items-center">
-                         <span className="text-slate-200 font-bold text-lg">Net Income</span>
+                         <span className="text-slate-200 font-bold text-lg">အသားတင် ဝင်ငွေ</span>
                          <span className={`font-bold text-2xl tabular-nums ${netIncome >= 0 ? 'text-emerald-400' : 'text-red-500'}`}>
                              Ks {netIncome.toLocaleString()}
                          </span>

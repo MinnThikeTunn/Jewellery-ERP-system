@@ -1,4 +1,3 @@
-
 import React, { useMemo } from 'react';
 import { 
   BarChart, 
@@ -100,9 +99,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ inventory, rawMaterials, p
   }, [glEntries]);
 
   const valuationData = [
-    { name: 'Finished', value: totalInventoryValue },
-    { name: 'Raw Mat', value: totalRawValue },
-    { name: 'Active POs', value: activePOValue },
+    { name: 'Finished', value: totalInventoryValue, displayName: 'အချောထည်' },
+    { name: 'Raw Mat', value: totalRawValue, displayName: 'ကုန်ကြမ်း' },
+    { name: 'Active POs', value: activePOValue, displayName: 'အဝယ်အော်ဒါများ' },
   ];
 
   // Helper component for currency display
@@ -117,10 +116,10 @@ export const Dashboard: React.FC<DashboardProps> = ({ inventory, rawMaterials, p
     <div className="space-y-8">
       <div className="flex justify-between items-end">
         <div>
-          <h1 className="text-3xl font-bold text-white tracking-tight mb-1">Executive Overview</h1>
-          <p className="text-slate-400">Real-time business intelligence.</p>
+          <h1 className="text-3xl font-bold text-white tracking-tight mb-1">လုပ်ငန်းသုံးသပ်ချက်</h1>
+          <p className="text-slate-400">လုပ်ငန်းဆိုင်ရာ အချိန်နှင့်တပြေးညီ အချက်အလက်များ</p>
         </div>
-        <span className="text-xs font-mono text-cyan-500 bg-cyan-500/10 px-3 py-1 rounded-full border border-cyan-500/20">Live</span>
+        <span className="text-xs font-mono text-cyan-500 bg-cyan-500/10 px-3 py-1 rounded-full border border-cyan-500/20">တိုက်ရိုက်</span>
       </div>
 
       {/* KPI Cards */}
@@ -131,7 +130,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ inventory, rawMaterials, p
              <DollarSign size={64} className="text-emerald-400" />
           </div>
           <div className="flex items-center justify-between mb-4 relative z-10">
-            <h3 className="text-sm font-medium text-slate-400">Total Valuation</h3>
+            <h3 className="text-sm font-medium text-slate-400">စုစုပေါင်းတန်ဖိုး</h3>
             <div className="p-2 bg-emerald-500/10 text-emerald-400 rounded-lg border border-emerald-500/20">
               <DollarSign size={18} />
             </div>
@@ -140,7 +139,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ inventory, rawMaterials, p
             <MoneyDisplay amount={totalInventoryValue + totalRawValue} />
           </p>
           <p className="text-xs text-emerald-400 mt-2 flex items-center gap-1">
-             <TrendingUp size={12} /> Live Asset Value
+             <TrendingUp size={12} /> လက်ရှိပိုင်ဆိုင်မှုတန်ဖိုး
           </p>
         </div>
 
@@ -153,13 +152,13 @@ export const Dashboard: React.FC<DashboardProps> = ({ inventory, rawMaterials, p
              <AlertTriangle size={64} className="text-amber-400" />
           </div>
           <div className="flex items-center justify-between mb-4 relative z-10">
-            <h3 className="text-sm font-medium text-slate-400">Low Stock Alerts</h3>
+            <h3 className="text-sm font-medium text-slate-400">ပစ္စည်းပြတ်လပ်မှု သတိပေးချက်များ</h3>
             <div className="p-2 bg-amber-500/10 text-amber-400 rounded-lg border border-amber-500/20">
               <AlertTriangle size={18} />
             </div>
           </div>
           <p className="text-2xl font-bold text-white relative z-10">{lowStockCount}</p>
-          <p className="text-xs text-slate-500 mt-2 group-hover:text-cyan-400 transition-colors">Items below reorder point →</p>
+          <p className="text-xs text-slate-500 mt-2 group-hover:text-cyan-400 transition-colors">ပြန်လည်မှာယူရမည့် အမှတ်အောက်ရောက်နေသော ပစ္စည်းများ →</p>
         </div>
 
         {/* Active POs */}
@@ -168,7 +167,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ inventory, rawMaterials, p
              <Package size={64} className="text-blue-400" />
           </div>
           <div className="flex items-center justify-between mb-4 relative z-10">
-            <h3 className="text-sm font-medium text-slate-400">Active POs</h3>
+            <h3 className="text-sm font-medium text-slate-400">ဆောင်ရွက်ဆဲ အဝယ်အော်ဒါများ</h3>
             <div className="p-2 bg-blue-500/10 text-blue-400 rounded-lg border border-blue-500/20">
               <Package size={18} />
             </div>
@@ -176,7 +175,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ inventory, rawMaterials, p
           <p className="text-2xl font-bold text-white relative z-10">
              <MoneyDisplay amount={activePOValue} />
           </p>
-          <p className="text-xs text-slate-500 mt-2">Pending & Received</p>
+          <p className="text-xs text-slate-500 mt-2">ဆိုင်းငံ့ နှင့် လက်ခံရရှိပြီး</p>
         </div>
 
         {/* Monthly Profit */}
@@ -185,7 +184,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ inventory, rawMaterials, p
              <TrendingUp size={64} className="text-purple-400" />
           </div>
           <div className="flex items-center justify-between mb-4 relative z-10">
-            <h3 className="text-sm font-medium text-slate-400">Monthly Profit</h3>
+            <h3 className="text-sm font-medium text-slate-400">လစဉ်အမြတ်ငွေ</h3>
             <div className="p-2 bg-purple-500/10 text-purple-400 rounded-lg border border-purple-500/20">
               <TrendingUp size={18} />
             </div>
@@ -193,7 +192,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ inventory, rawMaterials, p
           <p className="text-2xl font-bold text-white relative z-10">
             <MoneyDisplay amount={currentMonthProfit} />
           </p>
-          <p className="text-xs text-purple-400 mt-2">Actual for current month</p>
+          <p className="text-xs text-purple-400 mt-2">ယခုလအတွက် အမှန်တကယ်</p>
         </div>
       </div>
 
@@ -201,13 +200,13 @@ export const Dashboard: React.FC<DashboardProps> = ({ inventory, rawMaterials, p
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Valuation Breakdown */}
         <div className="bg-white/5 backdrop-blur-xl p-6 rounded-2xl shadow-xl border border-white/10">
-          <h3 className="text-lg font-semibold text-white mb-6">Asset Valuation</h3>
+          <h3 className="text-lg font-semibold text-white mb-6">ပိုင်ဆိုင်မှု တန်ဖိုးဖြတ်ခြင်း</h3>
           <div className="h-72">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={valuationData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.1)" />
                 <XAxis 
-                    dataKey="name" 
+                    dataKey="displayName" 
                     tick={{fontSize: 12, fill: '#94a3b8'}} 
                     axisLine={false} 
                     tickLine={false}
@@ -241,8 +240,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ inventory, rawMaterials, p
                 />
                 <defs>
                     <linearGradient id="colorAmber" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.8}/>
-                        <stop offset="95%" stopColor="#f59e0b" stopOpacity={0.3}/>
+                        <stop offset="5%" stopColor="#f59e0b" stopColorOpacity={0.8}/>
+                        <stop offset="95%" stopColor="#f59e0b" stopColorOpacity={0.3}/>
                     </linearGradient>
                 </defs>
               </BarChart>
@@ -252,7 +251,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ inventory, rawMaterials, p
 
         {/* Profit Trend */}
         <div className="bg-white/5 backdrop-blur-xl p-6 rounded-2xl shadow-xl border border-white/10">
-          <h3 className="text-lg font-semibold text-white mb-6">Sales & Profit Trend</h3>
+          <h3 className="text-lg font-semibold text-white mb-6">အရောင်းနှင့် အမြတ်ငွေ အခြေအနေ</h3>
           <div className="h-72">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={salesTrendData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
@@ -279,15 +278,15 @@ export const Dashboard: React.FC<DashboardProps> = ({ inventory, rawMaterials, p
                       border: '1px solid rgba(255,255,255,0.1)', 
                       color: '#fff',
                       boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.5)'
-                   }}
-                   itemStyle={{ color: '#fff' }}
-                   labelStyle={{ color: '#94a3b8', marginBottom: '4px' }}
+                  }}
+                  itemStyle={{ color: '#fff' }}
+                  labelStyle={{ color: '#94a3b8', marginBottom: '4px' }}
                 />
                 <Legend iconType="circle" wrapperStyle={{ paddingTop: '20px' }} />
                 <Line 
                     type="monotone" 
                     dataKey="sales" 
-                    name="Total Sales"
+                    name="စုစုပေါင်းအရောင်း"
                     stroke="#64748b" 
                     strokeWidth={2} 
                     dot={{r: 4, fill: '#64748b', strokeWidth: 0}} 
@@ -296,7 +295,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ inventory, rawMaterials, p
                 <Line 
                     type="monotone" 
                     dataKey="profit" 
-                    name="Net Profit"
+                    name="အသားတင်အမြတ်"
                     stroke="#10b981" 
                     strokeWidth={2} 
                     dot={{r: 4, fill: '#10b981', strokeWidth: 0}} 

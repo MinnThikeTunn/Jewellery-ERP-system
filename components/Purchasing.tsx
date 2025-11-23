@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Vendor, PurchaseOrder, InventoryItem, RawMaterial, ItemType, ReceiveData } from '../types';
 import { Truck, FileText, Plus, Trash2, X, Pencil, Calendar, DollarSign, User, PackageCheck, Box } from 'lucide-react';
@@ -128,12 +127,21 @@ export const Purchasing: React.FC<PurchasingProps> = ({
     setReceivingPO(null);
   };
 
+  const getStatusLabel = (status: string) => {
+      switch (status) {
+          case 'Pending': return 'ဆိုင်းငံ့';
+          case 'Received': return 'လက်ခံရရှိပြီး';
+          case 'Paid': return 'ငွေချေပြီး';
+          default: return status;
+      }
+  };
+
   return (
     <div className="space-y-8">
        <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold text-white tracking-tight">Purchasing (AP) 💵</h1>
-          <p className="text-slate-400 mt-1">Manage vendors and purchase orders.</p>
+          <h1 className="text-3xl font-bold text-white tracking-tight">ဝယ်ယူရေး (AP) 💵</h1>
+          <p className="text-slate-400 mt-1">ရောင်းချသူများနှင့် အဝယ်အော်ဒါများကို စီမံခန့်ခွဲရန်</p>
         </div>
       </div>
 
@@ -142,13 +150,13 @@ export const Purchasing: React.FC<PurchasingProps> = ({
           <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 overflow-hidden shadow-xl h-fit">
              <div className="px-6 py-4 border-b border-white/10 bg-white/5 flex justify-between items-center">
                 <h3 className="font-semibold text-white flex items-center gap-2">
-                    <Truck size={18} className="text-cyan-400" /> Vendors
+                    <Truck size={18} className="text-cyan-400" /> ရောင်းချသူများ
                 </h3>
                 <button 
                     onClick={() => setIsVendorModalOpen(true)}
                     className="text-xs bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/20 text-cyan-300 px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1"
                 >
-                    <Plus size={14} /> New
+                    <Plus size={14} /> အသစ်
                 </button>
              </div>
              <ul className="divide-y divide-white/5">
@@ -169,7 +177,7 @@ export const Purchasing: React.FC<PurchasingProps> = ({
                     </li>
                 ))}
                 {vendors.length === 0 && (
-                    <li className="px-6 py-8 text-center text-sm text-slate-500">No vendors found. Add one to get started.</li>
+                    <li className="px-6 py-8 text-center text-sm text-slate-500">ရောင်းချသူစာရင်း မရှိပါ</li>
                 )}
              </ul>
           </div>
@@ -178,25 +186,25 @@ export const Purchasing: React.FC<PurchasingProps> = ({
            <div className="lg:col-span-2 bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 overflow-hidden shadow-xl">
              <div className="px-6 py-4 border-b border-white/10 bg-white/5 flex justify-between items-center">
                 <h3 className="font-semibold text-white flex items-center gap-2">
-                    <FileText size={18} className="text-blue-400" /> Purchase Orders
+                    <FileText size={18} className="text-blue-400" /> အဝယ်အော်ဒါများ
                 </h3>
                 <button 
                     onClick={handleOpenAddPO}
                     className="text-xs bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/20 text-cyan-300 px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1"
                 >
-                    <Plus size={14} /> New PO
+                    <Plus size={14} /> အော်ဒါအသစ်
                 </button>
              </div>
              <div className="overflow-x-auto">
                 <table className="w-full text-left text-sm">
                     <thead className="text-slate-400 border-b border-white/10">
                         <tr>
-                            <th className="px-6 py-4 font-medium">PO #</th>
-                            <th className="px-6 py-4 font-medium">Vendor</th>
-                            <th className="px-6 py-4 font-medium">Date</th>
-                            <th className="px-6 py-4 font-medium text-right">Amount</th>
-                            <th className="px-6 py-4 font-medium">Status</th>
-                            <th className="px-6 py-4 font-medium text-right">Actions</th>
+                            <th className="px-6 py-4 font-medium">အော်ဒါနံပါတ်</th>
+                            <th className="px-6 py-4 font-medium">ရောင်းချသူ</th>
+                            <th className="px-6 py-4 font-medium">နေ့စွဲ</th>
+                            <th className="px-6 py-4 font-medium text-right">ပမာဏ</th>
+                            <th className="px-6 py-4 font-medium">အခြေအနေ</th>
+                            <th className="px-6 py-4 font-medium text-right">လုပ်ဆောင်ချက်</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-white/5">
@@ -217,7 +225,7 @@ export const Purchasing: React.FC<PurchasingProps> = ({
                                               po.status === 'Pending' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' :
                                               'bg-slate-700/30 text-slate-400 border-white/5'
                                             }`}>
-                                            {po.status}
+                                            {getStatusLabel(po.status)}
                                         </span>
                                     </td>
                                     <td className="px-6 py-4 text-right">
@@ -228,7 +236,7 @@ export const Purchasing: React.FC<PurchasingProps> = ({
                                                     className="flex items-center gap-1 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 px-2 py-1 rounded text-xs border border-emerald-500/20 transition-colors mr-2"
                                                     title="Receive Goods"
                                                 >
-                                                    <PackageCheck size={14} /> Receive
+                                                    <PackageCheck size={14} /> လက်ခံရရှိ
                                                 </button>
                                             )}
                                             <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -251,7 +259,7 @@ export const Purchasing: React.FC<PurchasingProps> = ({
                             );
                         })}
                         {purchaseOrders.length === 0 && (
-                             <tr><td colSpan={6} className="px-6 py-8 text-center text-slate-500">No purchase orders found.</td></tr>
+                             <tr><td colSpan={6} className="px-6 py-8 text-center text-slate-500">အဝယ်အော်ဒါများ မရှိပါ</td></tr>
                         )}
                     </tbody>
                 </table>
@@ -264,7 +272,7 @@ export const Purchasing: React.FC<PurchasingProps> = ({
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[60] p-4">
             <div className="bg-slate-900/90 border border-white/10 rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-200">
                 <div className="px-6 py-5 border-b border-white/10 flex justify-between items-center bg-white/5">
-                    <h2 className="text-lg font-bold text-white">Add New Vendor</h2>
+                    <h2 className="text-lg font-bold text-white">ရောင်းချသူအသစ်ထည့်ရန်</h2>
                     <button onClick={() => setIsVendorModalOpen(false)} className="text-slate-400 hover:text-white transition-colors"><X size={20} /></button>
                 </div>
                 <div className="p-6 space-y-4">
@@ -305,7 +313,7 @@ export const Purchasing: React.FC<PurchasingProps> = ({
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[60] p-4">
             <div className="bg-slate-900/90 border border-white/10 rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-200">
                 <div className="px-6 py-5 border-b border-white/10 flex justify-between items-center bg-white/5">
-                    <h2 className="text-lg font-bold text-white">{editingPOId ? 'Edit Purchase Order' : 'Create Purchase Order'}</h2>
+                    <h2 className="text-lg font-bold text-white">{editingPOId ? 'အဝယ်အော်ဒါ ပြင်ဆင်ရန်' : 'အဝယ်အော်ဒါ ဖွင့်ရန်'}</h2>
                     <button onClick={() => setIsPOModalOpen(false)} className="text-slate-400 hover:text-white transition-colors"><X size={20} /></button>
                 </div>
                 <div className="p-6 space-y-4">
@@ -368,7 +376,7 @@ export const Purchasing: React.FC<PurchasingProps> = ({
             <div className="bg-slate-900/90 border border-white/10 rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden animate-in fade-in zoom-in duration-200">
                  <div className="px-6 py-5 border-b border-white/10 flex justify-between items-center bg-white/5">
                     <div>
-                        <h2 className="text-lg font-bold text-white">Receive PO #{receivingPO.id}</h2>
+                        <h2 className="text-lg font-bold text-white">အော်ဒါလက်ခံရန် PO #{receivingPO.id}</h2>
                         <p className="text-xs text-slate-400">Total Value: Ks {receivingPO.total_amount.toLocaleString()}</p>
                     </div>
                     <button onClick={() => setIsReceiveModalOpen(false)} className="text-slate-400 hover:text-white transition-colors"><X size={20} /></button>
@@ -387,8 +395,8 @@ export const Purchasing: React.FC<PurchasingProps> = ({
                                 value={receiveForm.target}
                                 onChange={(e) => setReceiveForm({...receiveForm, target: e.target.value as 'raw_material' | 'inventory'})}
                              >
-                                 <option value="raw_material">Raw Materials</option>
-                                 <option value="inventory">Finished Inventory</option>
+                                 <option value="raw_material">Raw Materials (ကုန်ကြမ်း)</option>
+                                 <option value="inventory">Finished Inventory (အချောထည်)</option>
                              </select>
                         </div>
                         <div>
@@ -398,7 +406,7 @@ export const Purchasing: React.FC<PurchasingProps> = ({
                                 value={receiveForm.itemId}
                                 onChange={(e) => setReceiveForm({...receiveForm, itemId: e.target.value === 'new' ? 'new' : Number(e.target.value)})}
                              >
-                                 <option value="new">+ Create New Item</option>
+                                 <option value="new">+ Create New Item (ပစ္စည်းအသစ်ဖန်တီးရန်)</option>
                                  {receiveForm.target === 'raw_material' 
                                     ? rawMaterials.map(m => <option key={m.id} value={m.id}>{m.name}</option>)
                                     : inventoryItems.map(i => <option key={i.id} value={i.id}>{i.name}</option>)
@@ -411,7 +419,7 @@ export const Purchasing: React.FC<PurchasingProps> = ({
                      {receiveForm.itemId === 'new' && (
                         <div className="space-y-4 border-l-2 border-cyan-500/30 pl-4">
                             <div>
-                                <label className="block text-xs font-medium text-slate-400 mb-1.5">New Item Name</label>
+                                <label className="block text-xs font-medium text-slate-400 mb-1.5">New Item Name (ပစ္စည်းအမည်သစ်)</label>
                                 <input 
                                     type="text" 
                                     className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:border-cyan-500/50 focus:outline-none"

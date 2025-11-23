@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { RawMaterial, UnitOfMeasure, InventoryItem, ItemType, ItemStatus } from '../types';
 import { Hammer, Layers, ArrowRight } from 'lucide-react';
@@ -59,9 +58,9 @@ export const Manufacturing: React.FC<ManufacturingProps> = ({ rawMaterials, onCr
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold text-white tracking-tight flex items-center gap-3">
-            Manufacturing & Costing <Hammer className="text-slate-500" size={28} />
+            ထုတ်လုပ်မှုနှင့် ကုန်ကျစရိတ်တွက်ချက်ခြင်း 🛠️
           </h1>
-          <p className="text-slate-400 mt-1">Manage raw materials and production jobs.</p>
+          <p className="text-slate-400 mt-1">ကုန်ကြမ်းများနှင့် ထုတ်လုပ်မှုလုပ်ငန်းစဉ်များကို စီမံခန့်ခွဲရန်</p>
         </div>
       </div>
 
@@ -75,7 +74,7 @@ export const Manufacturing: React.FC<ManufacturingProps> = ({ rawMaterials, onCr
             }`}
             onClick={() => setActiveTab('materials')}
         >
-            Raw Materials Ledger
+            ကုန်ကြမ်းပစ္စည်း စာရင်း
         </button>
         <button 
             className={`px-6 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${
@@ -85,7 +84,7 @@ export const Manufacturing: React.FC<ManufacturingProps> = ({ rawMaterials, onCr
             }`}
             onClick={() => setActiveTab('job')}
         >
-            New Production Job
+            ထုတ်လုပ်မှုအသစ်စရန်
         </button>
       </div>
 
@@ -94,11 +93,11 @@ export const Manufacturing: React.FC<ManufacturingProps> = ({ rawMaterials, onCr
             <table className="w-full text-left text-sm">
                 <thead className="bg-white/5 text-slate-300 font-semibold border-b border-white/10">
                 <tr>
-                    <th className="px-6 py-5">Material Name</th>
-                    <th className="px-6 py-5">Unit</th>
-                    <th className="px-6 py-5 text-right">Current Stock</th>
-                    <th className="px-6 py-5 text-right">Cost/Unit</th>
-                    <th className="px-6 py-5 text-right">Total Value</th>
+                    <th className="px-6 py-5">ကုန်ကြမ်းအမည်</th>
+                    <th className="px-6 py-5">ယူနစ်</th>
+                    <th className="px-6 py-5 text-right">လက်ရှိစာရင်း</th>
+                    <th className="px-6 py-5 text-right">တစ်ယူနစ်ကျသင့်ငွေ</th>
+                    <th className="px-6 py-5 text-right">စုစုပေါင်းတန်ဖိုး</th>
                 </tr>
                 </thead>
                 <tbody className="divide-y divide-white/5">
@@ -118,7 +117,7 @@ export const Manufacturing: React.FC<ManufacturingProps> = ({ rawMaterials, onCr
                     </tr>
                 ))}
                 {rawMaterials.length === 0 && (
-                    <tr><td colSpan={5} className="px-6 py-8 text-center text-slate-500">No raw materials found.</td></tr>
+                    <tr><td colSpan={5} className="px-6 py-8 text-center text-slate-500">ကုန်ကြမ်းပစ္စည်းများ မရှိပါ</td></tr>
                 )}
                 </tbody>
             </table>
@@ -129,11 +128,11 @@ export const Manufacturing: React.FC<ManufacturingProps> = ({ rawMaterials, onCr
             <div className="bg-slate-950/50 backdrop-blur-xl p-8 rounded-2xl shadow-2xl border border-white/10">
                 <h3 className="text-lg font-semibold text-amber-400 mb-6 flex items-center gap-2">
                     <Hammer size={20} />
-                    Production Inputs
+                    ထုတ်လုပ်မှုအတွက် လိုအပ်ချက်များ
                 </h3>
                 <div className="space-y-6">
                     <div>
-                        <label className="block text-sm font-medium text-slate-400 mb-2">Select Raw Material</label>
+                        <label className="block text-sm font-medium text-slate-400 mb-2">ကုန်ကြမ်းရွေးချယ်ရန်</label>
                         <div className="relative">
                             <select 
                                 className="w-full bg-slate-900/80 border border-slate-700/50 rounded-xl px-4 py-3.5 text-white focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/50 focus:outline-none appearance-none transition-all hover:border-slate-600"
@@ -160,7 +159,7 @@ export const Manufacturing: React.FC<ManufacturingProps> = ({ rawMaterials, onCr
                     
                     <div className="grid grid-cols-2 gap-6">
                         <div>
-                            <label className="block text-sm font-medium text-slate-400 mb-2">Quantity Used</label>
+                            <label className="block text-sm font-medium text-slate-400 mb-2">သုံးစွဲသည့် ပမာဏ</label>
                             <input 
                                 type="number"
                                 className="w-full bg-slate-900/50 border border-slate-700/50 rounded-xl px-4 py-3.5 text-white focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/50 focus:outline-none transition-all placeholder:text-slate-700"
@@ -170,7 +169,7 @@ export const Manufacturing: React.FC<ManufacturingProps> = ({ rawMaterials, onCr
                             />
                         </div>
                          <div>
-                            <label className="block text-sm font-medium text-slate-400 mb-2">Labor Cost (Ks)</label>
+                            <label className="block text-sm font-medium text-slate-400 mb-2">လက်ခ (Ks)</label>
                             <input 
                                 type="number"
                                 className="w-full bg-slate-900/50 border border-slate-700/50 rounded-xl px-4 py-3.5 text-white focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/50 focus:outline-none transition-all placeholder:text-slate-700"
@@ -183,11 +182,11 @@ export const Manufacturing: React.FC<ManufacturingProps> = ({ rawMaterials, onCr
                     
                     <div className="border-t border-white/10 pt-6 mt-2">
                         <h4 className="text-sm font-semibold text-white mb-4 flex items-center gap-2">
-                            Output Product Details
+                            ထုတ်ကုန် အသေးစိတ်
                         </h4>
                         <div className="space-y-4">
                              <div>
-                                <label className="block text-xs font-medium text-slate-500 mb-1.5 uppercase tracking-wider">Product Name</label>
+                                <label className="block text-xs font-medium text-slate-500 mb-1.5 uppercase tracking-wider">ထုတ်ကုန်အမည်</label>
                                 <input 
                                     type="text"
                                     className="w-full bg-slate-900/50 border border-slate-700/50 rounded-xl px-4 py-3 text-white focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/50 focus:outline-none transition-all placeholder:text-slate-700"
@@ -197,7 +196,7 @@ export const Manufacturing: React.FC<ManufacturingProps> = ({ rawMaterials, onCr
                                 />
                             </div>
                             <div>
-                                <label className="block text-xs font-medium text-slate-500 mb-1.5 uppercase tracking-wider">New SKU</label>
+                                <label className="block text-xs font-medium text-slate-500 mb-1.5 uppercase tracking-wider">SKU အသစ်</label>
                                 <input 
                                     type="text"
                                     className="w-full bg-slate-900/50 border border-slate-700/50 rounded-xl px-4 py-3 text-white focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/50 focus:outline-none transition-all placeholder:text-slate-700"
@@ -220,25 +219,25 @@ export const Manufacturing: React.FC<ManufacturingProps> = ({ rawMaterials, onCr
                      
                      <h3 className="text-lg font-semibold text-white mb-6 flex items-center gap-2 relative z-10">
                         <Layers size={20} className="text-blue-400" />
-                        Job Cost Summary
+                        ကုန်ကျစရိတ် အနှစ်ချုပ်
                     </h3>
                     
                     <div className="space-y-4 text-sm relative z-10">
                         <div className="flex justify-between items-center bg-black/20 p-4 rounded-xl border border-white/5">
-                            <span className="text-slate-400">Material Cost ({selectedMaterial?.unit_of_measure})</span>
+                            <span className="text-slate-400">ကုန်ကြမ်းတန်ဖိုး ({selectedMaterial?.unit_of_measure})</span>
                             <span className="font-mono text-slate-200">Ks {materialCost.toLocaleString()}</span>
                         </div>
                          <div className="flex justify-between items-center bg-black/20 p-4 rounded-xl border border-white/5">
-                            <span className="text-slate-400">Labor Cost</span>
+                            <span className="text-slate-400">လက်ခ</span>
                             <span className="font-mono text-slate-200">Ks {laborCost.toLocaleString()}</span>
                         </div>
                         <div className="h-px bg-gradient-to-r from-transparent via-white/10 to-transparent my-2"></div>
                         <div className="flex justify-between text-xl font-bold text-white items-center pt-2">
-                            <span>Total COGS</span>
+                            <span>စုစုပေါင်း ကုန်ကျစရိတ်</span>
                             <span className="tabular-nums text-emerald-400 drop-shadow-sm">Ks {totalCost.toLocaleString()}</span>
                         </div>
                         <div className="text-xs text-right text-slate-500">
-                            Estimated Retail: Ks {(totalCost * 1.5).toLocaleString()}
+                            ခန့်မှန်းရောင်းစျေး: Ks {(totalCost * 1.5).toLocaleString()}
                         </div>
                     </div>
 
@@ -247,13 +246,13 @@ export const Manufacturing: React.FC<ManufacturingProps> = ({ rawMaterials, onCr
                         disabled={totalCost === 0 || !newProductSku || !newProductName}
                         className="w-full mt-8 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white py-4 rounded-xl font-semibold shadow-lg shadow-cyan-900/20 transition-all hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed flex justify-center items-center gap-2 relative z-10"
                     >
-                        Complete Production Job <ArrowRight size={18} />
+                        ထုတ်လုပ်မှု ပြီးစီးကြောင်း မှတ်သားမည် <ArrowRight size={18} />
                     </button>
                 </div>
                 
                 <div className="bg-blue-500/5 border border-blue-500/10 rounded-xl p-4 text-sm text-blue-300/80 flex gap-3">
                     <div className="mt-1"><Hammer size={16} /></div>
-                    <p>This action will deduct <strong>{usageAmount} {selectedMaterial?.unit_of_measure}</strong> from your Raw Materials ledger and create a new <strong>Finished Good</strong> in Inventory with the calculated cost.</p>
+                    <p>ဤလုပ်ဆောင်ချက်သည် သင့်ကုန်ကြမ်းစာရင်းမှ <strong>{usageAmount} {selectedMaterial?.unit_of_measure}</strong> ကို နှုတ်ယူမည်ဖြစ်ပြီး တွက်ချက်ထားသော ကုန်ကျစရိတ်ဖြင့် <strong>အချောထည်</strong> အသစ်တစ်ခုကို ကုန်ပစ္စည်းစာရင်းတွင် ထည့်သွင်းမည်ဖြစ်သည်။</p>
                 </div>
             </div>
           </div>

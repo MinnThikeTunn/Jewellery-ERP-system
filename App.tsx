@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { 
   HashRouter as Router, 
@@ -85,11 +84,11 @@ const Layout = ({ children, onSeed }: { children?: React.ReactNode, onSeed: () =
         </div>
 
         <nav className="px-6 space-y-2 mt-2">
-          <NavItem to="/" icon={LayoutDashboard} label="Dashboard" />
-          <NavItem to="/inventory" icon={Diamond} label="Inventory" />
-          <NavItem to="/manufacturing" icon={Hammer} label="Manufacturing" />
-          <NavItem to="/purchasing" icon={ShoppingCart} label="Purchasing" />
-          <NavItem to="/accounting" icon={BarChart3} label="Accounting" />
+          <NavItem to="/" icon={LayoutDashboard} label="ဒက်ရှ်ဘုတ်" />
+          <NavItem to="/inventory" icon={Diamond} label="ကုန်ပစ္စည်းစာရင်း" />
+          <NavItem to="/manufacturing" icon={Hammer} label="ထုတ်လုပ်မှု" />
+          <NavItem to="/purchasing" icon={ShoppingCart} label="ဝယ်ယူရေး" />
+          <NavItem to="/accounting" icon={BarChart3} label="စာရင်းကိုင်" />
         </nav>
 
         <div className="absolute bottom-0 w-full p-8 border-t border-white/5 space-y-6 bg-gradient-to-t from-slate-900/80 to-transparent">
@@ -97,7 +96,7 @@ const Layout = ({ children, onSeed }: { children?: React.ReactNode, onSeed: () =
              onClick={onSeed}
              className="w-full flex items-center gap-2 text-xs text-slate-500 hover:text-cyan-400 transition-colors group"
            >
-             <Database size={14} className="group-hover:scale-110 transition-transform" /> Seed Database (Dev)
+             <Database size={14} className="group-hover:scale-110 transition-transform" /> အချက်အလက်များထည့်သွင်းမည် (Dev)
            </button>
            
            <div className="flex items-center gap-3 pt-2">
@@ -106,7 +105,7 @@ const Layout = ({ children, onSeed }: { children?: React.ReactNode, onSeed: () =
               </div>
               <div>
                 <p className="text-sm font-medium text-white">Admin User</p>
-                <p className="text-xs text-slate-500">Owner</p>
+                <p className="text-xs text-slate-500">ပိုင်ရှင်</p>
               </div>
            </div>
         </div>
