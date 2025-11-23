@@ -56,13 +56,8 @@ export const Inventory: React.FC<InventoryProps> = ({ items, onAddItem, onUpdate
 
   // --- Helper Functions for Translation ---
   const getStatusLabel = (status: ItemStatus) => {
-    switch (status) {
-        case ItemStatus.IN_STOCK: return 'လက်ကျန်ရှိ';
-        case ItemStatus.IN_SERVICE: return 'ပြုပြင်ဆဲ';
-        case ItemStatus.SOLD: return 'ရောင်းပြီး';
-        case ItemStatus.RESERVED: return 'ကြိုတင်မှာယူထားသည်';
-        default: return status;
-    }
+    // Returned to English as requested
+    return status;
   };
 
   const getTypeLabel = (type: ItemType) => {
