@@ -48,7 +48,7 @@ const NavItem = ({ to, icon: Icon, label }: { to: string, icon: any, label: stri
   );
 };
 
-const Layout = ({ children, onSeed }: { children?: React.ReactNode, onSeed: () => void }) => {
+const Layout = ({ children }: { children?: React.ReactNode }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
@@ -90,25 +90,6 @@ const Layout = ({ children, onSeed }: { children?: React.ReactNode, onSeed: () =
           <NavItem to="/purchasing" icon={ShoppingCart} label="ဝယ်ယူရေး" />
           <NavItem to="/accounting" icon={BarChart3} label="စာရင်းကိုင်" />
         </nav>
-
-        <div className="absolute bottom-0 w-full p-8 border-t border-white/5 space-y-6 bg-gradient-to-t from-slate-900/80 to-transparent">
-           <button 
-             onClick={onSeed}
-             className="w-full flex items-center gap-2 text-xs text-slate-500 hover:text-cyan-400 transition-colors group"
-           >
-             <Database size={14} className="group-hover:scale-110 transition-transform" /> အချက်အလက်များထည့်သွင်းမည် (Dev)
-           </button>
-           
-           <div className="flex items-center gap-3 pt-2">
-              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-slate-700 to-slate-800 border border-white/10 flex items-center justify-center text-sm font-bold text-white shadow-inner">
-                AD
-              </div>
-              <div>
-                <p className="text-sm font-medium text-white">Admin User</p>
-                <p className="text-xs text-slate-500">ပိုင်ရှင်</p>
-              </div>
-           </div>
-        </div>
       </aside>
 
       {/* Main Content */}
@@ -244,7 +225,7 @@ const App: React.FC = () => {
     const { error } = await supabase
       .from('inventory_items')
       .update({
-        sku: finalItem.sku,
+        // sku: finalItem.sku, // SKU Removed
         name: finalItem.name,
         item_type: finalItem.item_type,
         status: finalItem.status,
@@ -320,7 +301,7 @@ const App: React.FC = () => {
             {
                 entry_date: today,
                 account_code: '1001', // Cash/Bank
-                description: `Sale Receipt: ${item.sku} (Qty ${quantity})`,
+                description: `Sale Receipt: ${item.name} (Qty ${quantity})`,
                 debit: totalRevenue,
                 credit: 0,
                 related_id: itemId,
@@ -329,7 +310,7 @@ const App: React.FC = () => {
             {
                 entry_date: today,
                 account_code: '4001', // Sales Revenue
-                description: `Revenue from ${item.sku}`,
+                description: `Revenue from ${item.name}`,
                 debit: 0,
                 credit: totalRevenue,
                 related_id: itemId,
@@ -338,7 +319,7 @@ const App: React.FC = () => {
             {
                 entry_date: today,
                 account_code: '5001', // Cost of Goods Sold
-                description: `COGS: ${item.sku}`,
+                description: `COGS: ${item.name}`,
                 debit: totalCOGS,
                 credit: 0,
                 related_id: itemId,
@@ -347,7 +328,7 @@ const App: React.FC = () => {
             {
                 entry_date: today,
                 account_code: '1200', // Inventory Asset
-                description: `Inventory reduction: ${item.sku}`,
+                description: `Inventory reduction: ${item.name}`,
                 debit: 0,
                 credit: totalCOGS,
                 related_id: itemId,
@@ -426,7 +407,7 @@ const App: React.FC = () => {
         {
           entry_date: today,
           account_code: '1200', // Finished Goods Asset Code
-          description: `Production Output: ${newItem.sku}`,
+          description: `Production Output: ${newItem.name}`,
           debit: newItem.landed_cost,
           credit: 0,
           related_type: 'manufacturing_job',
@@ -585,7 +566,7 @@ const App: React.FC = () => {
             // Finished Goods
             if (receiveData.itemId === 'new') {
                 const { error: invError } = await supabase.from('inventory_items').insert([{
-                    sku: receiveData.newItemSku,
+                    // sku: receiveData.newItemSku, // SKU Removed
                     name: receiveData.newItemName,
                     item_type: receiveData.newItemType,
                     status: ItemStatus.IN_STOCK,
@@ -648,7 +629,7 @@ const App: React.FC = () => {
 
   return (
     <Router>
-      <Layout onSeed={handleSeed}>
+      <Layout>
         
         {seeding && (
            <div className="fixed inset-0 bg-black/60 z-[60] flex items-center justify-center backdrop-blur-md">
