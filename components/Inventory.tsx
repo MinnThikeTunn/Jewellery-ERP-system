@@ -485,7 +485,14 @@ export const Inventory: React.FC<InventoryProps> = ({ items, onAddItem, onUpdate
                     type="number" 
                     className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/50 focus:outline-none transition-all"
                     value={formData.qty_available}
-                    onChange={e => setFormData({...formData, qty_available: Number(e.target.value)})}
+                    onChange={e => {
+                        const val = Number(e.target.value);
+                        setFormData(prev => ({
+                            ...prev, 
+                            qty_available: val,
+                            status: val === 0 ? ItemStatus.SOLD : (prev.status === ItemStatus.SOLD ? ItemStatus.IN_STOCK : prev.status)
+                        }))
+                    }}
                   />
                 </div>
                 <div>

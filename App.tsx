@@ -199,13 +199,19 @@ const App: React.FC = () => {
 
   // Inventory Handlers
   const handleAddItem = async (item: Omit<InventoryItem, 'id'>) => {
+    // Business Rule: If Quantity is 0, Status must be 'Sold'
+    const finalItem = { ...item };
+    if (finalItem.qty_available === 0) {
+        finalItem.status = ItemStatus.SOLD;
+    }
+
     const tempId = Date.now();
-    const optimisticItem = { ...item, id: tempId };
+    const optimisticItem = { ...finalItem, id: tempId };
     setInventory([optimisticItem, ...inventory]);
 
     const { data, error } = await supabase
       .from('inventory_items')
-      .insert([item])
+      .insert([finalItem])
       .select()
       .single();
 
@@ -218,23 +224,29 @@ const App: React.FC = () => {
   };
 
   const handleUpdateItem = async (updatedItem: InventoryItem) => {
+    // Business Rule: If Quantity is 0, Status must be 'Sold'
+    const finalItem = { ...updatedItem };
+    if (finalItem.qty_available === 0) {
+        finalItem.status = ItemStatus.SOLD;
+    }
+
     const originalInventory = [...inventory];
-    setInventory(prev => prev.map(item => item.id === updatedItem.id ? updatedItem : item));
+    setInventory(prev => prev.map(item => item.id === finalItem.id ? finalItem : item));
 
     const { error } = await supabase
       .from('inventory_items')
       .update({
-        sku: updatedItem.sku,
-        name: updatedItem.name,
-        item_type: updatedItem.item_type,
-        status: updatedItem.status,
-        location: updatedItem.location,
-        qty_available: updatedItem.qty_available,
-        landed_cost: updatedItem.landed_cost,
-        retail_price: updatedItem.retail_price,
-        reorder_point: updatedItem.reorder_point
+        sku: finalItem.sku,
+        name: finalItem.name,
+        item_type: finalItem.item_type,
+        status: finalItem.status,
+        location: finalItem.location,
+        qty_available: finalItem.qty_available,
+        landed_cost: finalItem.landed_cost,
+        retail_price: finalItem.retail_price,
+        reorder_point: finalItem.reorder_point
       })
-      .eq('id', updatedItem.id);
+      .eq('id', finalItem.id);
 
     if (error) {
       console.error("Error updating item:", error);
@@ -269,6 +281,12 @@ const App: React.FC = () => {
     }
 
     const newStock = item.qty_available - quantity;
+    // Business Rule: If New Stock is 0, Status changes to Sold
+    let newStatus = item.status;
+    if (newStock === 0) {
+        newStatus = ItemStatus.SOLD;
+    }
+
     const totalRevenue = quantity * salePrice;
     const totalCOGS = quantity * item.landed_cost;
     const today = new Date().toISOString().split('T')[0];
@@ -278,7 +296,10 @@ const App: React.FC = () => {
         // 1. Update Inventory
         const { error: invError } = await supabase
             .from('inventory_items')
-            .update({ qty_available: newStock })
+            .update({ 
+                qty_available: newStock,
+                status: newStatus 
+            })
             .eq('id', itemId);
         
         if (invError) throw invError;
