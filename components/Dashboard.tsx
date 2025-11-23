@@ -62,9 +62,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ inventory, rawMaterials, p
       // Account codes starting with '4' are Income/Sales (Credits)
       // Account codes starting with '5' (COGS) or '6' (Expenses) are Costs (Debits)
       if (entry.account_code.startsWith('4')) {
-        monthlyStats[key].sales += entry.credit;
+        monthlyStats[key].sales += Number(entry.credit) || 0;
       } else if (entry.account_code.startsWith('5') || entry.account_code.startsWith('6')) {
-        monthlyStats[key].expenses += entry.debit;
+        monthlyStats[key].expenses += Number(entry.debit) || 0;
       }
     });
 

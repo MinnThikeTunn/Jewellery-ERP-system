@@ -143,6 +143,15 @@ const App: React.FC = () => {
   const [pos, setPos] = useState<PurchaseOrder[]>([]);
   const [glEntries, setGLEntries] = useState<GLEntry[]>([]);
 
+  // Helper to get Local Date as YYYY-MM-DD to avoid UTC timezone issues
+  const getLocalDate = () => {
+    const d = new Date();
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
   const fetchAllData = async () => {
     setLoading(true);
     setError(null);
@@ -288,7 +297,8 @@ const App: React.FC = () => {
 
     const totalRevenue = quantity * salePrice;
     const totalCOGS = quantity * item.landed_cost;
-    const today = new Date().toISOString().split('T')[0];
+    // Use local date to ensure profit is recorded in the correct month for the user
+    const today = getLocalDate();
 
     setLoading(true);
     try {
@@ -393,7 +403,9 @@ const App: React.FC = () => {
       // 2. Credit Cash/Wages Payable (Liability Increase)
       // 3. Debit Finished Goods (Asset Increase)
       
-      const today = new Date().toISOString().split('T')[0];
+      // Use local date
+      const today = getLocalDate();
+
       const { error: glError } = await supabase.from('general_ledger_entries').insert([
         {
           entry_date: today,
@@ -598,9 +610,13 @@ const App: React.FC = () => {
 
         // 3. Write GL Entry (Financial)
         // Debit Inventory (Asset increases), Credit Accounts Payable/Cash
+        
+        // Use local date
+        const today = getLocalDate();
+
         const { error: glError } = await supabase.from('general_ledger_entries').insert([
             {
-                entry_date: new Date().toISOString().split('T')[0],
+                entry_date: today,
                 account_code: '1200', // Inventory Asset
                 description: `Received Goods from PO #${poId}`,
                 debit: po.total_amount,
@@ -609,7 +625,7 @@ const App: React.FC = () => {
                 related_type: 'purchase_order'
             },
             {
-                entry_date: new Date().toISOString().split('T')[0],
+                entry_date: today,
                 account_code: '2000', // Accounts Payable
                 description: `Liability for PO #${poId}`,
                 debit: 0,
