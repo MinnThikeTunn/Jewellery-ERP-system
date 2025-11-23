@@ -1,7 +1,7 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { InventoryItem, ItemType, ItemStatus } from '../types';
-import { Search, Filter, Plus, AlertCircle, CheckCircle, Tag, Pencil, Trash2, X, DollarSign } from 'lucide-react';
+import { Search, Filter, Plus, AlertCircle, CheckCircle, Tag, Pencil, Trash2, X, DollarSign, ArrowUpDown, ChevronDown, RefreshCcw, MapPin } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
 
 interface InventoryProps {
@@ -12,14 +12,30 @@ interface InventoryProps {
   onSellItem: (id: number, quantity: number, salePrice: number) => void;
 }
 
+type SortField = 'qty_available' | 'landed_cost' | 'retail_price' | 'none';
+type SortOrder = 'asc' | 'desc';
+
 export const Inventory: React.FC<InventoryProps> = ({ items, onAddItem, onUpdateItem, onDeleteItem, onSellItem }) => {
   const location = useLocation();
+  
+  // -- Filter State --
   const [searchTerm, setSearchTerm] = useState('');
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingId, setEditingId] = useState<number | null>(null);
+  const [showFilters, setShowFilters] = useState(false);
   const [showLowStockOnly, setShowLowStockOnly] = useState(false);
   
-  // Sell Modal State
+  const [filterType, setFilterType] = useState<ItemType | 'All'>('All');
+  const [filterStatus, setFilterStatus] = useState<ItemStatus | 'All'>('All');
+  const [filterLocation, setFilterLocation] = useState<string>('All');
+
+  // -- Sort State --
+  const [sortField, setSortField] = useState<SortField>('none');
+  const [sortOrder, setSortOrder] = useState<SortOrder>('desc');
+
+  // -- Modal State --
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingId, setEditingId] = useState<number | null>(null);
+  
+  // -- Sell Modal State --
   const [isSellModalOpen, setIsSellModalOpen] = useState(false);
   const [sellingItem, setSellingItem] = useState<InventoryItem | null>(null);
   const [sellQty, setSellQty] = useState(1);
@@ -29,16 +45,69 @@ export const Inventory: React.FC<InventoryProps> = ({ items, onAddItem, onUpdate
   useEffect(() => {
     if (location.state && (location.state as any).filter === 'low-stock') {
       setShowLowStockOnly(true);
+      setShowFilters(true); // Open panel so user sees why results are filtered
     }
   }, [location]);
-  
-  // Filter Logic
-  const filteredItems = items.filter(item => {
-    const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          item.sku.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStock = showLowStockOnly ? item.qty_available <= item.reorder_point : true;
-    return matchesSearch && matchesStock;
-  });
+
+  // Derive Unique Locations for Dropdown
+  const uniqueLocations = useMemo(() => {
+    const locs = new Set(items.map(i => i.location).filter(Boolean));
+    return Array.from(locs).sort();
+  }, [items]);
+
+  // --- Main Filter & Sort Logic ---
+  const processedItems = useMemo(() => {
+    let result = items;
+
+    // 1. Text Search
+    if (searchTerm) {
+        const lowerTerm = searchTerm.toLowerCase();
+        result = result.filter(item => 
+            item.name.toLowerCase().includes(lowerTerm) ||
+            item.sku.toLowerCase().includes(lowerTerm)
+        );
+    }
+
+    // 2. Low Stock Toggle
+    if (showLowStockOnly) {
+        result = result.filter(item => item.qty_available <= item.reorder_point);
+    }
+
+    // 3. Dropdown Filters
+    if (filterType !== 'All') {
+        result = result.filter(item => item.item_type === filterType);
+    }
+    if (filterStatus !== 'All') {
+        result = result.filter(item => item.status === filterStatus);
+    }
+    if (filterLocation !== 'All') {
+        result = result.filter(item => item.location === filterLocation);
+    }
+
+    // 4. Sorting
+    if (sortField !== 'none') {
+        result = [...result].sort((a, b) => {
+            const valA = a[sortField];
+            const valB = b[sortField];
+            
+            if (valA < valB) return sortOrder === 'asc' ? -1 : 1;
+            if (valA > valB) return sortOrder === 'asc' ? 1 : -1;
+            return 0;
+        });
+    }
+
+    return result;
+  }, [items, searchTerm, showLowStockOnly, filterType, filterStatus, filterLocation, sortField, sortOrder]);
+
+
+  const resetFilters = () => {
+      setSearchTerm('');
+      setFilterType('All');
+      setFilterStatus('All');
+      setFilterLocation('All');
+      setSortField('none');
+      setShowLowStockOnly(false);
+  };
 
   // Form State
   const initialFormState: Partial<InventoryItem> = {
@@ -92,13 +161,8 @@ export const Inventory: React.FC<InventoryProps> = ({ items, onAddItem, onUpdate
   const handleSave = () => {
     if (formData.sku && formData.name && formData.qty_available !== undefined) {
       if (editingId) {
-        // Update existing
-        onUpdateItem({
-            ...formData,
-            id: editingId
-        } as InventoryItem);
+        onUpdateItem({ ...formData, id: editingId } as InventoryItem);
       } else {
-        // Add new
         const item: Omit<InventoryItem, 'id'> = {
             sku: formData.sku,
             name: formData.name,
@@ -120,7 +184,7 @@ export const Inventory: React.FC<InventoryProps> = ({ items, onAddItem, onUpdate
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
         <div>
           <h1 className="text-3xl font-bold text-white tracking-tight">Master Stock Ledger 💎</h1>
@@ -135,25 +199,140 @@ export const Inventory: React.FC<InventoryProps> = ({ items, onAddItem, onUpdate
         </button>
       </div>
 
-      {/* Toolbar */}
-      <div className="flex flex-col sm:flex-row gap-4 bg-white/5 backdrop-blur-md p-4 rounded-2xl border border-white/10">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
-          <input 
-            type="text"
-            placeholder="Search by SKU or Name..."
-            className="w-full pl-10 pr-4 py-2.5 bg-slate-900/50 border border-white/10 rounded-xl text-slate-200 focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/50 placeholder:text-slate-600 transition-all"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
+      {/* --- Search & Toggle Bar --- */}
+      <div className="flex flex-col gap-4">
+        <div className="flex gap-4">
+            <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
+            <input 
+                type="text"
+                placeholder="Search by SKU or Name..."
+                className="w-full pl-10 pr-4 py-3 bg-white/5 backdrop-blur-md border border-white/10 rounded-xl text-slate-200 focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/50 placeholder:text-slate-500 transition-all shadow-lg"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+            />
+            </div>
+            <button 
+                onClick={() => setShowFilters(!showFilters)}
+                className={`flex items-center gap-2 px-6 py-3 border rounded-xl transition-all shadow-lg font-medium ${
+                    showFilters 
+                    ? 'bg-cyan-500/20 border-cyan-500/50 text-cyan-300' 
+                    : 'bg-white/5 border-white/10 text-slate-300 hover:bg-white/10'
+                }`}
+            >
+            <Filter size={18} />
+            Filters
+            <ChevronDown size={16} className={`transition-transform duration-200 ${showFilters ? 'rotate-180' : ''}`} />
+            </button>
         </div>
-        <button 
-            onClick={() => setShowLowStockOnly(!showLowStockOnly)}
-            className={`flex items-center gap-2 px-6 py-2.5 border rounded-xl transition-colors ${showLowStockOnly ? 'bg-amber-500/20 border-amber-500/40 text-amber-300' : 'bg-slate-900/50 border-white/10 text-slate-300 hover:bg-white/10'}`}
-        >
-          <Filter size={18} />
-          {showLowStockOnly ? 'Show All Items' : 'Filter Low Stock'}
-        </button>
+
+        {/* --- Advanced Filter Panel --- */}
+        {showFilters && (
+            <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6 shadow-2xl animate-in slide-in-from-top-2 duration-200">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                    {/* Column 1: Filter Dropdowns */}
+                    <div className="space-y-4 md:col-span-1">
+                        <label className="text-xs font-bold text-slate-500 uppercase tracking-wider block">Filter By</label>
+                        
+                        <div className="space-y-3">
+                            <select 
+                                className="w-full bg-black/20 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-cyan-500/50"
+                                value={filterType}
+                                onChange={(e) => setFilterType(e.target.value as ItemType | 'All')}
+                            >
+                                <option value="All">All Types</option>
+                                {Object.values(ItemType).map(t => <option key={t} value={t}>{t}</option>)}
+                            </select>
+
+                            <select 
+                                className="w-full bg-black/20 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-cyan-500/50"
+                                value={filterStatus}
+                                onChange={(e) => setFilterStatus(e.target.value as ItemStatus | 'All')}
+                            >
+                                <option value="All">All Statuses</option>
+                                {Object.values(ItemStatus).map(s => <option key={s} value={s}>{s}</option>)}
+                            </select>
+
+                             <select 
+                                className="w-full bg-black/20 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-cyan-500/50"
+                                value={filterLocation}
+                                onChange={(e) => setFilterLocation(e.target.value)}
+                            >
+                                <option value="All">All Locations</option>
+                                {uniqueLocations.map(loc => <option key={loc} value={loc}>{loc}</option>)}
+                            </select>
+                        </div>
+                    </div>
+
+                    {/* Column 2: Quick Toggles */}
+                    <div className="space-y-4 md:col-span-1">
+                         <label className="text-xs font-bold text-slate-500 uppercase tracking-wider block">Quick Views</label>
+                         <button 
+                            onClick={() => setShowLowStockOnly(!showLowStockOnly)}
+                            className={`w-full flex items-center justify-between px-4 py-2.5 rounded-lg border text-sm transition-all ${
+                                showLowStockOnly 
+                                ? 'bg-amber-500/20 border-amber-500/50 text-amber-300' 
+                                : 'bg-black/20 border-white/10 text-slate-400 hover:bg-white/10'
+                            }`}
+                        >
+                            <span className="flex items-center gap-2"><AlertCircle size={16}/> Low Stock Alerts</span>
+                            {showLowStockOnly && <CheckCircle size={14} />}
+                         </button>
+                    </div>
+
+                    {/* Column 3: Sorting */}
+                    <div className="space-y-4 md:col-span-2">
+                        <label className="text-xs font-bold text-slate-500 uppercase tracking-wider block">Sort Order</label>
+                        <div className="grid grid-cols-2 gap-3">
+                             {/* Stock Sort */}
+                             <button 
+                                onClick={() => { setSortField('qty_available'); setSortOrder(sortOrder === 'desc' ? 'asc' : 'desc'); }}
+                                className={`px-4 py-2 rounded-lg border text-sm flex items-center justify-between transition-all ${
+                                    sortField === 'qty_available' ? 'bg-blue-500/20 border-blue-500/50 text-blue-300' : 'bg-black/20 border-white/10 text-slate-400 hover:bg-white/10'
+                                }`}
+                             >
+                                <span className="flex items-center gap-2">Stock Level</span>
+                                {sortField === 'qty_available' ? (sortOrder === 'asc' ? <ArrowUpDown className="rotate-180" size={14}/> : <ArrowUpDown size={14}/>) : null}
+                             </button>
+
+                             {/* Retail Sort */}
+                             <button 
+                                onClick={() => { setSortField('retail_price'); setSortOrder(sortOrder === 'desc' ? 'asc' : 'desc'); }}
+                                className={`px-4 py-2 rounded-lg border text-sm flex items-center justify-between transition-all ${
+                                    sortField === 'retail_price' ? 'bg-emerald-500/20 border-emerald-500/50 text-emerald-300' : 'bg-black/20 border-white/10 text-slate-400 hover:bg-white/10'
+                                }`}
+                             >
+                                <span className="flex items-center gap-2">Retail Price</span>
+                                {sortField === 'retail_price' ? (sortOrder === 'asc' ? <ArrowUpDown className="rotate-180" size={14}/> : <ArrowUpDown size={14}/>) : null}
+                             </button>
+
+                             {/* Cost Sort */}
+                             <button 
+                                onClick={() => { setSortField('landed_cost'); setSortOrder(sortOrder === 'desc' ? 'asc' : 'desc'); }}
+                                className={`px-4 py-2 rounded-lg border text-sm flex items-center justify-between transition-all ${
+                                    sortField === 'landed_cost' ? 'bg-purple-500/20 border-purple-500/50 text-purple-300' : 'bg-black/20 border-white/10 text-slate-400 hover:bg-white/10'
+                                }`}
+                             >
+                                <span className="flex items-center gap-2">Landed Cost</span>
+                                {sortField === 'landed_cost' ? (sortOrder === 'asc' ? <ArrowUpDown className="rotate-180" size={14}/> : <ArrowUpDown size={14}/>) : null}
+                             </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="mt-6 pt-4 border-t border-white/10 flex justify-between items-center">
+                    <p className="text-xs text-slate-500">
+                        Showing {processedItems.length} results
+                    </p>
+                    <button 
+                        onClick={resetFilters}
+                        className="text-xs flex items-center gap-1.5 text-slate-400 hover:text-white transition-colors"
+                    >
+                        <RefreshCcw size={12} /> Reset All Filters
+                    </button>
+                </div>
+            </div>
+        )}
       </div>
 
       {/* Table */}
@@ -173,7 +352,7 @@ export const Inventory: React.FC<InventoryProps> = ({ items, onAddItem, onUpdate
               </tr>
             </thead>
             <tbody className="divide-y divide-white/5">
-              {filteredItems.map((item) => (
+              {processedItems.map((item) => (
                 <tr key={item.id} className="hover:bg-white/5 transition-colors group">
                   <td className="px-6 py-5">
                     <div className="font-medium text-white">{item.sku}</div>
@@ -185,7 +364,10 @@ export const Inventory: React.FC<InventoryProps> = ({ items, onAddItem, onUpdate
                       {item.item_type}
                     </span>
                   </td>
-                  <td className="px-6 py-5 text-slate-400">{item.location}</td>
+                  <td className="px-6 py-5 text-slate-400 flex items-center gap-1">
+                      {item.location !== 'Unassigned' && <MapPin size={12} className="opacity-50" />}
+                      {item.location}
+                  </td>
                   <td className="px-6 py-5 text-right font-medium">
                     <span className={`flex items-center justify-end gap-1 ${item.qty_available <= item.reorder_point ? "text-red-400" : "text-slate-200"}`}>
                       {item.qty_available <= item.reorder_point && <AlertCircle size={14} />}
@@ -240,9 +422,14 @@ export const Inventory: React.FC<InventoryProps> = ({ items, onAddItem, onUpdate
             </tbody>
           </table>
         </div>
-        {filteredItems.length === 0 && (
+        {processedItems.length === 0 && (
           <div className="p-12 text-center text-slate-500">
-            {showLowStockOnly ? 'No low stock items found.' : 'No items found matching your search.'}
+             <div className="flex justify-center mb-4">
+                 <Filter size={48} className="text-slate-700" />
+             </div>
+             <p className="text-lg font-medium text-slate-400">No items found</p>
+             <p className="text-sm">Try adjusting your filters or search terms.</p>
+             <button onClick={resetFilters} className="mt-4 text-cyan-400 hover:underline">Clear all filters</button>
           </div>
         )}
       </div>
