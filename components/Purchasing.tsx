@@ -1,30 +1,37 @@
 
 import React, { useState } from 'react';
-import { Vendor, PurchaseOrder } from '../types';
-import { Truck, FileText, Plus, Trash2, X, Pencil, Calendar, DollarSign, User } from 'lucide-react';
+import { Vendor, PurchaseOrder, InventoryItem, RawMaterial, ItemType, ReceiveData } from '../types';
+import { Truck, FileText, Plus, Trash2, X, Pencil, Calendar, DollarSign, User, PackageCheck, Box } from 'lucide-react';
 
 interface PurchasingProps {
   vendors: Vendor[];
   purchaseOrders: PurchaseOrder[];
+  rawMaterials: RawMaterial[];
+  inventoryItems: InventoryItem[];
   onAddVendor: (vendor: Omit<Vendor, 'id'>) => void;
   onDeleteVendor: (id: number) => void;
   onAddPO: (po: Omit<PurchaseOrder, 'id'>) => void;
   onUpdatePO: (po: PurchaseOrder) => void;
   onDeletePO: (id: number) => void;
+  onReceivePO: (poId: number, data: ReceiveData) => void;
 }
 
 export const Purchasing: React.FC<PurchasingProps> = ({ 
   vendors, 
   purchaseOrders,
+  rawMaterials,
+  inventoryItems,
   onAddVendor,
   onDeleteVendor,
   onAddPO,
   onUpdatePO,
-  onDeletePO
+  onDeletePO,
+  onReceivePO
 }) => {
   // Modal State
   const [isVendorModalOpen, setIsVendorModalOpen] = useState(false);
   const [isPOModalOpen, setIsPOModalOpen] = useState(false);
+  const [isReceiveModalOpen, setIsReceiveModalOpen] = useState(false);
   
   // Form State - Vendor
   const [vendorForm, setVendorForm] = useState<Partial<Vendor>>({
@@ -41,6 +48,16 @@ export const Purchasing: React.FC<PurchasingProps> = ({
   };
   const [poForm, setPoForm] = useState<Partial<PurchaseOrder>>(initialPOState);
   const [editingPOId, setEditingPOId] = useState<number | null>(null);
+
+  // Form State - Receive
+  const [receivingPO, setReceivingPO] = useState<PurchaseOrder | null>(null);
+  const [receiveForm, setReceiveForm] = useState<Partial<ReceiveData>>({
+    target: 'raw_material',
+    itemId: 'new',
+    quantity: 1,
+    newItemName: '',
+    location: 'Vault'
+  });
 
   // Vendor Handlers
   const handleSaveVendor = () => {
@@ -82,6 +99,33 @@ export const Purchasing: React.FC<PurchasingProps> = ({
     } else {
         alert("Please select a Vendor and enter an Amount");
     }
+  };
+
+  // Receive Handlers
+  const handleOpenReceive = (po: PurchaseOrder) => {
+    setReceivingPO(po);
+    setReceiveForm({
+        target: 'raw_material',
+        itemId: 'new',
+        quantity: 1,
+        newItemName: `Items from PO #${po.id}`,
+        newItemSku: `PO${po.id}-ITEM`,
+        newItemType: ItemType.RAW_MATERIAL,
+        location: 'Main Vault'
+    });
+    setIsReceiveModalOpen(true);
+  };
+
+  const handleSubmitReceive = () => {
+    if (!receivingPO || !receiveForm.quantity || !receiveForm.itemId) return;
+    if (receiveForm.itemId === 'new' && !receiveForm.newItemName) {
+        alert("Please enter a name for the new item.");
+        return;
+    }
+
+    onReceivePO(receivingPO.id, receiveForm as ReceiveData);
+    setIsReceiveModalOpen(false);
+    setReceivingPO(null);
   };
 
   return (
@@ -177,19 +221,30 @@ export const Purchasing: React.FC<PurchasingProps> = ({
                                         </span>
                                     </td>
                                     <td className="px-6 py-4 text-right">
-                                        <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                            <button 
-                                                onClick={() => handleOpenEditPO(po)}
-                                                className="p-1.5 text-slate-400 hover:text-cyan-400 hover:bg-cyan-500/10 rounded transition-colors"
-                                            >
-                                                <Pencil size={14} />
-                                            </button>
-                                            <button 
-                                                onClick={() => onDeletePO(po.id)}
-                                                className="p-1.5 text-slate-400 hover:text-red-400 hover:bg-red-500/10 rounded transition-colors"
-                                            >
-                                                <Trash2 size={14} />
-                                            </button>
+                                        <div className="flex items-center justify-end gap-2">
+                                            {po.status === 'Pending' && (
+                                                <button
+                                                    onClick={() => handleOpenReceive(po)}
+                                                    className="flex items-center gap-1 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 px-2 py-1 rounded text-xs border border-emerald-500/20 transition-colors mr-2"
+                                                    title="Receive Goods"
+                                                >
+                                                    <PackageCheck size={14} /> Receive
+                                                </button>
+                                            )}
+                                            <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                <button 
+                                                    onClick={() => handleOpenEditPO(po)}
+                                                    className="p-1.5 text-slate-400 hover:text-cyan-400 hover:bg-cyan-500/10 rounded transition-colors"
+                                                >
+                                                    <Pencil size={14} />
+                                                </button>
+                                                <button 
+                                                    onClick={() => onDeletePO(po.id)}
+                                                    className="p-1.5 text-slate-400 hover:text-red-400 hover:bg-red-500/10 rounded transition-colors"
+                                                >
+                                                    <Trash2 size={14} />
+                                                </button>
+                                            </div>
                                         </div>
                                     </td>
                                 </tr>
@@ -301,6 +356,120 @@ export const Purchasing: React.FC<PurchasingProps> = ({
                     <button onClick={() => setIsPOModalOpen(false)} className="px-4 py-2 text-slate-400 hover:text-white transition-colors">Cancel</button>
                     <button onClick={handleSavePO} className="px-6 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white rounded-lg transition-colors font-medium shadow-lg shadow-blue-900/20">
                         {editingPOId ? 'Update Order' : 'Create Order'}
+                    </button>
+                </div>
+            </div>
+        </div>
+      )}
+
+      {/* --- RECEIVE GOODS MODAL --- */}
+      {isReceiveModalOpen && receivingPO && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[60] p-4">
+            <div className="bg-slate-900/90 border border-white/10 rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden animate-in fade-in zoom-in duration-200">
+                 <div className="px-6 py-5 border-b border-white/10 flex justify-between items-center bg-white/5">
+                    <div>
+                        <h2 className="text-lg font-bold text-white">Receive PO #{receivingPO.id}</h2>
+                        <p className="text-xs text-slate-400">Total Value: Ks {receivingPO.total_amount.toLocaleString()}</p>
+                    </div>
+                    <button onClick={() => setIsReceiveModalOpen(false)} className="text-slate-400 hover:text-white transition-colors"><X size={20} /></button>
+                </div>
+                <div className="p-6 space-y-5">
+                     <div className="bg-blue-500/10 border border-blue-500/20 p-4 rounded-xl flex gap-3">
+                        <Box className="text-blue-400 shrink-0" />
+                        <p className="text-sm text-blue-200">This will update the status to <b>Received</b>, add items to your <b>Stock</b>, and create a <b>General Ledger</b> entry automatically.</p>
+                     </div>
+
+                     <div className="grid grid-cols-2 gap-4">
+                        <div>
+                             <label className="block text-xs font-medium text-slate-400 mb-1.5">Destination</label>
+                             <select 
+                                className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/50 focus:outline-none appearance-none bg-slate-900"
+                                value={receiveForm.target}
+                                onChange={(e) => setReceiveForm({...receiveForm, target: e.target.value as 'raw_material' | 'inventory'})}
+                             >
+                                 <option value="raw_material">Raw Materials</option>
+                                 <option value="inventory">Finished Inventory</option>
+                             </select>
+                        </div>
+                        <div>
+                            <label className="block text-xs font-medium text-slate-400 mb-1.5">Select Item</label>
+                             <select 
+                                className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/50 focus:outline-none appearance-none bg-slate-900"
+                                value={receiveForm.itemId}
+                                onChange={(e) => setReceiveForm({...receiveForm, itemId: e.target.value === 'new' ? 'new' : Number(e.target.value)})}
+                             >
+                                 <option value="new">+ Create New Item</option>
+                                 {receiveForm.target === 'raw_material' 
+                                    ? rawMaterials.map(m => <option key={m.id} value={m.id}>{m.name}</option>)
+                                    : inventoryItems.map(i => <option key={i.id} value={i.id}>{i.name}</option>)
+                                 }
+                             </select>
+                        </div>
+                     </div>
+
+                     {/* Dynamic Fields based on Selection */}
+                     {receiveForm.itemId === 'new' && (
+                        <div className="space-y-4 border-l-2 border-cyan-500/30 pl-4">
+                            <div>
+                                <label className="block text-xs font-medium text-slate-400 mb-1.5">New Item Name</label>
+                                <input 
+                                    type="text" 
+                                    className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:border-cyan-500/50 focus:outline-none"
+                                    value={receiveForm.newItemName}
+                                    onChange={(e) => setReceiveForm({...receiveForm, newItemName: e.target.value})}
+                                    placeholder="e.g. 24k Gold Bar"
+                                />
+                            </div>
+                            {receiveForm.target === 'inventory' && (
+                                <div className="grid grid-cols-2 gap-4">
+                                     <div>
+                                        <label className="block text-xs font-medium text-slate-400 mb-1.5">SKU</label>
+                                        <input 
+                                            type="text" 
+                                            className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:border-cyan-500/50 focus:outline-none"
+                                            value={receiveForm.newItemSku}
+                                            onChange={(e) => setReceiveForm({...receiveForm, newItemSku: e.target.value})}
+                                            placeholder="SKU-001"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-medium text-slate-400 mb-1.5">Type</label>
+                                        <select 
+                                            className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:border-cyan-500/50 focus:outline-none bg-slate-900"
+                                            value={receiveForm.newItemType}
+                                            onChange={(e) => setReceiveForm({...receiveForm, newItemType: e.target.value as any})}
+                                        >
+                                            <option value={ItemType.FINISHED_GOOD}>Finished Good</option>
+                                            <option value={ItemType.LOOSE_STONE}>Loose Stone</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                     )}
+
+                     <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <label className="block text-xs font-medium text-slate-400 mb-1.5">Quantity Received</label>
+                            <input 
+                                type="number" 
+                                className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:border-cyan-500/50 focus:outline-none"
+                                value={receiveForm.quantity}
+                                onChange={(e) => setReceiveForm({...receiveForm, quantity: Number(e.target.value)})}
+                            />
+                        </div>
+                        <div>
+                             <label className="block text-xs font-medium text-slate-400 mb-1.5">Cost Per Unit (Calc)</label>
+                             <div className="px-4 py-2.5 bg-white/5 rounded-xl text-slate-300 border border-white/5 tabular-nums text-sm">
+                                Ks {((receivingPO.total_amount) / (receiveForm.quantity || 1)).toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                             </div>
+                        </div>
+                     </div>
+                </div>
+                <div className="px-6 py-4 bg-white/5 border-t border-white/10 flex justify-end gap-3">
+                    <button onClick={() => setIsReceiveModalOpen(false)} className="px-4 py-2 text-slate-400 hover:text-white transition-colors">Cancel</button>
+                    <button onClick={handleSubmitReceive} className="px-6 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg transition-colors font-medium flex items-center gap-2 shadow-lg shadow-emerald-900/20">
+                         <PackageCheck size={18} /> Confirm Receipt
                     </button>
                 </div>
             </div>

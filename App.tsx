@@ -25,7 +25,7 @@ import { Inventory } from './components/Inventory';
 import { Manufacturing } from './components/Manufacturing';
 import { Purchasing } from './components/Purchasing';
 import { Accounting } from './components/Accounting';
-import { InventoryItem, RawMaterial, Vendor, PurchaseOrder, GLEntry } from './types';
+import { InventoryItem, RawMaterial, Vendor, PurchaseOrder, GLEntry, ReceiveData, ItemType, ItemStatus, UnitOfMeasure } from './types';
 import { supabase } from './lib/supabaseClient';
 import { seedDatabase } from './lib/seeder';
 
@@ -153,7 +153,7 @@ const App: React.FC = () => {
         supabase.from('raw_materials').select('*'),
         supabase.from('vendors').select('*').order('id', { ascending: true }),
         supabase.from('purchase_orders').select('*').order('id', { ascending: false }),
-        supabase.from('general_ledger_entries').select('*'),
+        supabase.from('general_ledger_entries').select('*').order('entry_date', { ascending: false }),
       ]);
 
       if (invRes.error) throw invRes.error;
@@ -259,29 +259,160 @@ const App: React.FC = () => {
     }
   };
 
+  const handleSellItem = async (itemId: number, quantity: number, salePrice: number) => {
+    const item = inventory.find(i => i.id === itemId);
+    if (!item) return;
+
+    if (quantity > item.qty_available) {
+        alert('Insufficient stock!');
+        return;
+    }
+
+    const newStock = item.qty_available - quantity;
+    const totalRevenue = quantity * salePrice;
+    const totalCOGS = quantity * item.landed_cost;
+    const today = new Date().toISOString().split('T')[0];
+
+    setLoading(true);
+    try {
+        // 1. Update Inventory
+        const { error: invError } = await supabase
+            .from('inventory_items')
+            .update({ qty_available: newStock })
+            .eq('id', itemId);
+        
+        if (invError) throw invError;
+
+        // 2. GL Entries (4-legged transaction)
+        // Debit Cash, Credit Revenue
+        // Debit COGS, Credit Inventory
+        const { error: glError } = await supabase.from('general_ledger_entries').insert([
+            {
+                entry_date: today,
+                account_code: '1001', // Cash/Bank
+                description: `Sale Receipt: ${item.sku} (Qty ${quantity})`,
+                debit: totalRevenue,
+                credit: 0,
+                related_id: itemId,
+                related_type: 'sale'
+            },
+            {
+                entry_date: today,
+                account_code: '4001', // Sales Revenue
+                description: `Revenue from ${item.sku}`,
+                debit: 0,
+                credit: totalRevenue,
+                related_id: itemId,
+                related_type: 'sale'
+            },
+            {
+                entry_date: today,
+                account_code: '5001', // Cost of Goods Sold
+                description: `COGS: ${item.sku}`,
+                debit: totalCOGS,
+                credit: 0,
+                related_id: itemId,
+                related_type: 'sale'
+            },
+            {
+                entry_date: today,
+                account_code: '1200', // Inventory Asset
+                description: `Inventory reduction: ${item.sku}`,
+                debit: 0,
+                credit: totalCOGS,
+                related_id: itemId,
+                related_type: 'sale'
+            }
+        ]);
+
+        if (glError) throw glError;
+
+        await fetchAllData();
+        alert('Sale recorded successfully!');
+    } catch (err: any) {
+        console.error(err);
+        alert('Failed to record sale: ' + err.message);
+    } finally {
+        setLoading(false);
+    }
+  };
+
   // Manufacturing Handlers
   const handleCreateJob = async (materialId: number, amountUsed: number, newItem: Omit<InventoryItem, 'id'>) => {
     const material = rawMaterials.find(m => m.id === materialId);
     if(!material) return;
 
+    const materialCost = material.cost_per_unit * amountUsed;
+    // Total Landed Cost of new item includes Labor. 
+    // So Labor = Total - Material.
+    const laborCost = newItem.landed_cost - materialCost;
+
     const newStock = material.current_stock - amountUsed;
     setRawMaterials(prev => prev.map(m => m.id === materialId ? {...m, current_stock: newStock} : m));
     
-    // Step A: Deduct Material
-    const { error: matError } = await supabase
-      .from('raw_materials')
-      .update({ current_stock: newStock })
-      .eq('id', materialId);
+    try {
+      // Step A: Deduct Material
+      const { error: matError } = await supabase
+        .from('raw_materials')
+        .update({ current_stock: newStock })
+        .eq('id', materialId);
 
-    if (matError) {
-      alert('Error updating material stock: ' + matError.message);
-      fetchAllData();
-      return;
+      if (matError) throw matError;
+
+      // Step B: Add Finished Good
+      const { data: savedItem, error: invError } = await supabase
+        .from('inventory_items')
+        .insert([newItem])
+        .select()
+        .single();
+
+      if (invError) throw invError;
+
+      // Step C: Write GL Entries (Triple Entry for Manufacturing)
+      // 1. Credit Raw Materials (Asset Decrease)
+      // 2. Credit Cash/Wages Payable (Liability Increase)
+      // 3. Debit Finished Goods (Asset Increase)
+      
+      const today = new Date().toISOString().split('T')[0];
+      const { error: glError } = await supabase.from('general_ledger_entries').insert([
+        {
+          entry_date: today,
+          account_code: '1100', // Raw Material Asset Code
+          description: `Material Usage: ${material.name} (${amountUsed} ${material.unit_of_measure})`,
+          debit: 0,
+          credit: materialCost,
+          related_type: 'manufacturing_job'
+        },
+        {
+          entry_date: today,
+          account_code: '5002', // Labor/Overhead Cost Code
+          description: `Labor for Job: ${newItem.name}`,
+          debit: 0, 
+          credit: laborCost, // Crediting Cash (assuming paid) or Payable
+          related_type: 'manufacturing_job'
+        },
+        {
+          entry_date: today,
+          account_code: '1200', // Finished Goods Asset Code
+          description: `Production Output: ${newItem.sku}`,
+          debit: newItem.landed_cost,
+          credit: 0,
+          related_type: 'manufacturing_job',
+          related_id: savedItem?.id
+        }
+      ]);
+
+      if (glError) throw glError;
+
+      // Refresh Data to show new item and GL entries
+      await fetchAllData();
+      alert('Manufacturing Job Recorded Successfully: Inventory & Ledger Updated.');
+
+    } catch (err: any) {
+      console.error(err);
+      alert('Error processing manufacturing job: ' + err.message);
+      fetchAllData(); // Revert optimistic updates on error
     }
-
-    // Step B: Add Finished Good
-    await handleAddItem(newItem);
-    alert('Manufacturing Job Recorded Successfully');
   };
 
   // Purchasing Handlers - Vendors
@@ -368,6 +499,117 @@ const App: React.FC = () => {
     }
   };
 
+  // --- AUTOMATED RECEIVING LOGIC ---
+  // This function closes the loop: Update PO -> Update Inventory -> Write GL
+  const handleReceivePO = async (poId: number, receiveData: ReceiveData) => {
+    const po = pos.find(p => p.id === poId);
+    if (!po) return;
+    if (po.status === 'Received') {
+        alert('This PO has already been received.');
+        return;
+    }
+
+    setLoading(true);
+    try {
+        // 1. Update PO Status
+        const { error: poError } = await supabase
+            .from('purchase_orders')
+            .update({ status: 'Received' })
+            .eq('id', poId);
+        
+        if (poError) throw new Error('Failed to update PO status: ' + poError.message);
+
+        // 2. Update Inventory (Physical Stock)
+        if (receiveData.target === 'raw_material') {
+            if (receiveData.itemId === 'new') {
+                // Create new raw material
+                const { error: rmError } = await supabase.from('raw_materials').insert([{
+                    name: receiveData.newItemName,
+                    unit_of_measure: UnitOfMeasure.GRAM, // Defaulting for simplicity
+                    current_stock: receiveData.quantity,
+                    cost_per_unit: po.total_amount / receiveData.quantity // Calculated Cost
+                }]);
+                if (rmError) throw new Error('Failed to create raw material: ' + rmError.message);
+            } else {
+                // Update existing raw material (Weighted Average Costing could go here, simplified for now)
+                const existing = rawMaterials.find(r => r.id === Number(receiveData.itemId));
+                if (existing) {
+                     // Calculate new weighted average cost
+                    const totalValue = (existing.current_stock * existing.cost_per_unit) + po.total_amount;
+                    const totalQty = existing.current_stock + receiveData.quantity;
+                    const newCost = totalValue / totalQty;
+
+                    const { error: rmUpdateError } = await supabase
+                        .from('raw_materials')
+                        .update({ 
+                            current_stock: totalQty,
+                            cost_per_unit: newCost
+                        })
+                        .eq('id', receiveData.itemId);
+                    if (rmUpdateError) throw new Error('Failed to update raw material stock: ' + rmUpdateError.message);
+                }
+            }
+        } else {
+            // Finished Goods
+            if (receiveData.itemId === 'new') {
+                const { error: invError } = await supabase.from('inventory_items').insert([{
+                    sku: receiveData.newItemSku,
+                    name: receiveData.newItemName,
+                    item_type: receiveData.newItemType,
+                    status: ItemStatus.IN_STOCK,
+                    location: receiveData.location,
+                    qty_available: receiveData.quantity,
+                    landed_cost: po.total_amount / receiveData.quantity,
+                    retail_price: (po.total_amount / receiveData.quantity) * 1.5, // Mock markup
+                    reorder_point: 1
+                }]);
+                if (invError) throw new Error('Failed to create inventory item: ' + invError.message);
+            } else {
+                const existing = inventory.find(i => i.id === Number(receiveData.itemId));
+                if (existing) {
+                    const { error: invUpdateError } = await supabase
+                        .from('inventory_items')
+                        .update({ qty_available: existing.qty_available + receiveData.quantity })
+                        .eq('id', receiveData.itemId);
+                    if (invUpdateError) throw new Error('Failed to update inventory stock: ' + invUpdateError.message);
+                }
+            }
+        }
+
+        // 3. Write GL Entry (Financial)
+        // Debit Inventory (Asset increases), Credit Accounts Payable/Cash
+        const { error: glError } = await supabase.from('general_ledger_entries').insert([
+            {
+                entry_date: new Date().toISOString().split('T')[0],
+                account_code: '1200', // Inventory Asset
+                description: `Received Goods from PO #${poId}`,
+                debit: po.total_amount,
+                credit: 0,
+                related_id: poId,
+                related_type: 'purchase_order'
+            },
+            {
+                entry_date: new Date().toISOString().split('T')[0],
+                account_code: '2000', // Accounts Payable
+                description: `Liability for PO #${poId}`,
+                debit: 0,
+                credit: po.total_amount,
+                related_id: poId,
+                related_type: 'purchase_order'
+            }
+        ]);
+        if (glError) throw new Error('Failed to write GL entries: ' + glError.message);
+
+        alert("Receiving successful! Inventory updated and GL entries created.");
+        await fetchAllData(); // Refresh all data
+
+    } catch (err: any) {
+        console.error(err);
+        alert("Error during receiving: " + err.message);
+        setLoading(false);
+    }
+  };
+
   return (
     <Router>
       <Layout onSeed={handleSeed}>
@@ -431,6 +673,7 @@ const App: React.FC = () => {
               inventory={inventory}
               rawMaterials={rawMaterials}
               purchaseOrders={pos}
+              glEntries={glEntries}
             />
           } />
           <Route path="/inventory" element={
@@ -439,6 +682,7 @@ const App: React.FC = () => {
               onAddItem={handleAddItem}
               onUpdateItem={handleUpdateItem}
               onDeleteItem={handleDeleteItem}
+              onSellItem={handleSellItem}
             />
           } />
           <Route path="/manufacturing" element={
@@ -451,11 +695,14 @@ const App: React.FC = () => {
             <Purchasing 
               vendors={vendors} 
               purchaseOrders={pos}
+              rawMaterials={rawMaterials}
+              inventoryItems={inventory}
               onAddVendor={handleAddVendor}
               onDeleteVendor={handleDeleteVendor}
               onAddPO={handleAddPO}
               onUpdatePO={handleUpdatePO}
               onDeletePO={handleDeletePO}
+              onReceivePO={handleReceivePO}
             />
           } />
           <Route path="/accounting" element={

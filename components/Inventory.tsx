@@ -1,25 +1,44 @@
 
 import React, { useState, useEffect } from 'react';
 import { InventoryItem, ItemType, ItemStatus } from '../types';
-import { Search, Filter, Plus, AlertCircle, CheckCircle, Tag, Pencil, Trash2, X } from 'lucide-react';
+import { Search, Filter, Plus, AlertCircle, CheckCircle, Tag, Pencil, Trash2, X, DollarSign } from 'lucide-react';
+import { useLocation } from 'react-router-dom';
 
 interface InventoryProps {
   items: InventoryItem[];
   onAddItem: (item: Omit<InventoryItem, 'id'>) => void;
   onUpdateItem: (item: InventoryItem) => void;
   onDeleteItem: (id: number) => void;
+  onSellItem: (id: number, quantity: number, salePrice: number) => void;
 }
 
-export const Inventory: React.FC<InventoryProps> = ({ items, onAddItem, onUpdateItem, onDeleteItem }) => {
+export const Inventory: React.FC<InventoryProps> = ({ items, onAddItem, onUpdateItem, onDeleteItem, onSellItem }) => {
+  const location = useLocation();
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
+  const [showLowStockOnly, setShowLowStockOnly] = useState(false);
+  
+  // Sell Modal State
+  const [isSellModalOpen, setIsSellModalOpen] = useState(false);
+  const [sellingItem, setSellingItem] = useState<InventoryItem | null>(null);
+  const [sellQty, setSellQty] = useState(1);
+  const [sellPrice, setSellPrice] = useState(0);
+
+  // Check for navigation state from Dashboard
+  useEffect(() => {
+    if (location.state && (location.state as any).filter === 'low-stock') {
+      setShowLowStockOnly(true);
+    }
+  }, [location]);
   
   // Filter Logic
-  const filteredItems = items.filter(item => 
-    item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    item.sku.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredItems = items.filter(item => {
+    const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                          item.sku.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStock = showLowStockOnly ? item.qty_available <= item.reorder_point : true;
+    return matchesSearch && matchesStock;
+  });
 
   // Form State
   const initialFormState: Partial<InventoryItem> = {
@@ -43,6 +62,25 @@ export const Inventory: React.FC<InventoryProps> = ({ items, onAddItem, onUpdate
     setEditingId(item.id);
     setFormData({ ...item });
     setIsModalOpen(true);
+  };
+
+  const handleOpenSell = (item: InventoryItem) => {
+    setSellingItem(item);
+    setSellQty(1);
+    setSellPrice(item.retail_price);
+    setIsSellModalOpen(true);
+  };
+
+  const handleConfirmSell = () => {
+    if (sellingItem && sellQty > 0 && sellPrice >= 0) {
+        if (sellQty > sellingItem.qty_available) {
+            alert("Cannot sell more than available stock!");
+            return;
+        }
+        onSellItem(sellingItem.id, sellQty, sellPrice);
+        setIsSellModalOpen(false);
+        setSellingItem(null);
+    }
   };
 
   const handleDelete = (id: number) => {
@@ -109,9 +147,12 @@ export const Inventory: React.FC<InventoryProps> = ({ items, onAddItem, onUpdate
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
-        <button className="flex items-center gap-2 px-6 py-2.5 border border-white/10 rounded-xl text-slate-300 hover:bg-white/10 hover:text-white transition-colors bg-slate-900/50">
+        <button 
+            onClick={() => setShowLowStockOnly(!showLowStockOnly)}
+            className={`flex items-center gap-2 px-6 py-2.5 border rounded-xl transition-colors ${showLowStockOnly ? 'bg-amber-500/20 border-amber-500/40 text-amber-300' : 'bg-slate-900/50 border-white/10 text-slate-300 hover:bg-white/10'}`}
+        >
           <Filter size={18} />
-          Filter
+          {showLowStockOnly ? 'Show All Items' : 'Filter Low Stock'}
         </button>
       </div>
 
@@ -169,7 +210,15 @@ export const Inventory: React.FC<InventoryProps> = ({ items, onAddItem, onUpdate
                     </span>
                   </td>
                   <td className="px-6 py-5 text-right">
-                    <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button 
+                            onClick={() => handleOpenSell(item)}
+                            className="p-2 text-emerald-400 hover:text-emerald-300 hover:bg-emerald-500/10 rounded-lg transition-colors flex items-center gap-1"
+                            title="Sell Item"
+                        >
+                            <DollarSign size={16} />
+                        </button>
+                        <div className="w-px h-4 bg-white/10 mx-1"></div>
                         <button 
                             onClick={() => handleOpenEdit(item)}
                             className="p-2 text-slate-400 hover:text-cyan-400 hover:bg-cyan-500/10 rounded-lg transition-colors"
@@ -193,7 +242,7 @@ export const Inventory: React.FC<InventoryProps> = ({ items, onAddItem, onUpdate
         </div>
         {filteredItems.length === 0 && (
           <div className="p-12 text-center text-slate-500">
-            No items found matching your search.
+            {showLowStockOnly ? 'No low stock items found.' : 'No items found matching your search.'}
           </div>
         )}
       </div>
@@ -283,6 +332,17 @@ export const Inventory: React.FC<InventoryProps> = ({ items, onAddItem, onUpdate
                     />
                  </div>
                  <div>
+                    <label className="block text-xs font-medium text-slate-400 mb-1.5">Reorder Point (Alert)</label>
+                    <input 
+                        type="number" 
+                        className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/50 focus:outline-none transition-all"
+                        value={formData.reorder_point}
+                        onChange={e => setFormData({...formData, reorder_point: Number(e.target.value)})}
+                    />
+                 </div>
+              </div>
+              
+               <div>
                     <label className="block text-xs font-medium text-slate-400 mb-1.5">Status</label>
                     <select 
                         className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/50 focus:outline-none appearance-none"
@@ -292,7 +352,6 @@ export const Inventory: React.FC<InventoryProps> = ({ items, onAddItem, onUpdate
                         {Object.values(ItemStatus).map(s => <option key={s} value={s} className="bg-slate-900">{s}</option>)}
                     </select>
                  </div>
-              </div>
             </div>
             <div className="px-6 py-5 bg-white/5 border-t border-white/10 flex justify-end gap-3">
               <button onClick={() => setIsModalOpen(false)} className="px-5 py-2.5 text-slate-400 hover:text-white font-medium transition-colors">Cancel</button>
@@ -303,6 +362,61 @@ export const Inventory: React.FC<InventoryProps> = ({ items, onAddItem, onUpdate
             </div>
           </div>
         </div>
+      )}
+
+      {/* --- Sell Item Modal --- */}
+      {isSellModalOpen && sellingItem && (
+         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[60] p-4">
+            <div className="bg-slate-900/90 border border-white/10 rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-200">
+                <div className="px-6 py-5 border-b border-white/10 flex justify-between items-center bg-white/5">
+                    <div>
+                        <h2 className="text-lg font-bold text-white">Record Sale</h2>
+                        <p className="text-xs text-slate-400">{sellingItem.sku} - {sellingItem.name}</p>
+                    </div>
+                    <button onClick={() => setIsSellModalOpen(false)} className="text-slate-400 hover:text-white transition-colors"><X size={20} /></button>
+                </div>
+                <div className="p-6 space-y-4">
+                     <div className="bg-emerald-500/10 border border-emerald-500/20 p-4 rounded-xl flex gap-3">
+                        <DollarSign className="text-emerald-400 shrink-0" />
+                        <p className="text-sm text-emerald-200">Recording a sale will deduct inventory and create <b>Revenue</b> & <b>COGS</b> entries in the General Ledger.</p>
+                     </div>
+
+                     <div>
+                        <label className="block text-xs font-medium text-slate-400 mb-1.5">Quantity Sold</label>
+                        <input 
+                            type="number" 
+                            className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:border-cyan-500/50 focus:outline-none"
+                            value={sellQty}
+                            max={sellingItem.qty_available}
+                            min={1}
+                            onChange={(e) => setSellQty(Number(e.target.value))}
+                        />
+                        <p className="text-xs text-right text-slate-500 mt-1">Available: {sellingItem.qty_available}</p>
+                     </div>
+
+                     <div>
+                        <label className="block text-xs font-medium text-slate-400 mb-1.5">Unit Sale Price (Kyats)</label>
+                        <input 
+                            type="number" 
+                            className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:border-cyan-500/50 focus:outline-none"
+                            value={sellPrice}
+                            onChange={(e) => setSellPrice(Number(e.target.value))}
+                        />
+                     </div>
+
+                     <div className="pt-2 border-t border-white/10 flex justify-between items-center">
+                        <span className="text-slate-400 text-sm">Total Revenue:</span>
+                        <span className="text-xl font-bold text-emerald-400 tabular-nums">Ks {(sellQty * sellPrice).toLocaleString()}</span>
+                     </div>
+                </div>
+                <div className="px-6 py-4 bg-white/5 border-t border-white/10 flex justify-end gap-3">
+                    <button onClick={() => setIsSellModalOpen(false)} className="px-4 py-2 text-slate-400 hover:text-white transition-colors">Cancel</button>
+                    <button onClick={handleConfirmSell} className="px-6 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg transition-colors font-medium flex items-center gap-2 shadow-lg shadow-emerald-900/20">
+                         <CheckCircle size={18} /> Confirm Sale
+                    </button>
+                </div>
+            </div>
+         </div>
       )}
     </div>
   );

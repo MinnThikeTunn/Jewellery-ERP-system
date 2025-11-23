@@ -1,3 +1,4 @@
+
 export enum ItemType {
   FINISHED_GOOD = 'Finished Good',
   LOOSE_STONE = 'Loose Stone',
@@ -77,4 +78,15 @@ export interface DashboardMetrics {
   totalRawMaterialValue: number;
   openPOValue: number;
   grossProfit: number;
+}
+
+// Data structure for the Receiving Modal
+export interface ReceiveData {
+    target: 'inventory' | 'raw_material';
+    itemId: number | 'new'; // Existing ID or 'new'
+    newItemName?: string; // If new
+    newItemSku?: string; // If new inventory
+    newItemType?: ItemType; // If new inventory
+    quantity: number;
+    location?: string;
 }

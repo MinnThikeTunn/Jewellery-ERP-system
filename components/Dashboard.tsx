@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import { 
   BarChart, 
   Bar, 
@@ -18,45 +18,98 @@ import {
   TrendingUp, 
   AlertTriangle 
 } from 'lucide-react';
-import { InventoryItem, RawMaterial, PurchaseOrder } from '../types';
+import { useNavigate } from 'react-router-dom';
+import { InventoryItem, RawMaterial, PurchaseOrder, GLEntry } from '../types';
 
 interface DashboardProps {
   inventory: InventoryItem[];
   rawMaterials: RawMaterial[];
   purchaseOrders: PurchaseOrder[];
+  glEntries: GLEntry[];
 }
 
-export const Dashboard: React.FC<DashboardProps> = ({ inventory, rawMaterials, purchaseOrders }) => {
+export const Dashboard: React.FC<DashboardProps> = ({ inventory, rawMaterials, purchaseOrders, glEntries }) => {
+  const navigate = useNavigate();
+
   // Calculate Metrics
   const totalInventoryValue = inventory.reduce((acc, item) => acc + (item.landed_cost * item.qty_available), 0);
   const totalRawValue = rawMaterials.reduce((acc, item) => acc + (item.cost_per_unit * item.current_stock), 0);
-  const openPOValue = purchaseOrders
-    .filter(po => po.status === 'Pending')
-    .reduce((acc, po) => acc + po.total_amount, 0);
+  
+  // Calculate Active POs (Pending + Received) - Represents total unpaid liability/incoming value
+  const activePOValue = purchaseOrders
+    .filter(po => po.status === 'Pending' || po.status === 'Received')
+    .reduce((acc, po) => acc + (Number(po.total_amount) || 0), 0);
   
   const lowStockCount = inventory.filter(item => item.qty_available <= item.reorder_point).length;
 
-  // Mock Chart Data
+  // --- REAL DATA AGGREGATION FOR CHARTS ---
+  const { salesTrendData, currentMonthProfit } = useMemo(() => {
+    // Helper to get YYYY-MM key safely from YYYY-MM-DD string
+    const getMonthKey = (dateStr: string) => {
+      if (!dateStr || dateStr.length < 7) return 'Unknown';
+      return dateStr.substring(0, 7); // "2023-10-01" -> "2023-10"
+    };
+
+    // Group GL Entries by Month
+    const monthlyStats: Record<string, { sales: number, expenses: number }> = {};
+
+    glEntries.forEach(entry => {
+      const key = getMonthKey(entry.entry_date);
+      if (!monthlyStats[key]) {
+        monthlyStats[key] = { sales: 0, expenses: 0 };
+      }
+
+      // Heuristic for Demo: 
+      // Account codes starting with '4' are Income/Sales (Credits)
+      // Account codes starting with '5' (COGS) or '6' (Expenses) are Costs (Debits)
+      if (entry.account_code.startsWith('4')) {
+        monthlyStats[key].sales += entry.credit;
+      } else if (entry.account_code.startsWith('5') || entry.account_code.startsWith('6')) {
+        monthlyStats[key].expenses += entry.debit;
+      }
+    });
+
+    // Sort keys to be chronological
+    const sortedKeys = Object.keys(monthlyStats).sort();
+    
+    // Get Current Month Profit
+    const now = new Date();
+    const currentMonthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+    const currentStats = monthlyStats[currentMonthKey] || { sales: 0, expenses: 0 };
+    const currentProfit = currentStats.sales - currentStats.expenses;
+
+    // Format data for Recharts (Take last 6 months of data if available, or just what we have)
+    const trendData = sortedKeys.slice(-6).map(key => {
+      const [year, month] = key.split('-');
+      // Create date object for display name (using local year/month construction)
+      const dateObj = new Date(parseInt(year), parseInt(month) - 1, 1); 
+      const stats = monthlyStats[key];
+      return {
+        month: dateObj.toLocaleString('default', { month: 'short' }), // e.g. "Oct"
+        sales: stats.sales,
+        profit: stats.sales - stats.expenses
+      };
+    });
+
+    // Fallback if no data
+    if (trendData.length === 0) {
+       trendData.push({ month: 'No Data', sales: 0, profit: 0 });
+    }
+
+    return { salesTrendData: trendData, currentMonthProfit: currentProfit };
+  }, [glEntries]);
+
   const valuationData = [
     { name: 'Finished', value: totalInventoryValue },
     { name: 'Raw Mat', value: totalRawValue },
-    { name: 'Open POs', value: openPOValue },
-  ];
-
-  const salesTrendData = [
-    { month: 'Jul', sales: 12000000, profit: 7200000 },
-    { month: 'Aug', sales: 9000000, profit: 4194000 },
-    { month: 'Sep', sales: 6000000, profit: 29400000 },
-    { month: 'Oct', sales: 8340000, profit: 11724000 },
-    { month: 'Nov', sales: 5670000, profit: 14400000 },
-    { month: 'Dec', sales: 7170000, profit: 11400000 },
+    { name: 'Active POs', value: activePOValue },
   ];
 
   // Helper component for currency display
   const MoneyDisplay = ({ amount }: { amount: number }) => (
     <span className="tabular-nums tracking-tight text-white">
       <span className="text-slate-400 text-sm font-normal mr-1">Ks</span>
-      {amount.toLocaleString()}
+      {(amount || 0).toLocaleString()}
     </span>
   );
 
@@ -87,12 +140,15 @@ export const Dashboard: React.FC<DashboardProps> = ({ inventory, rawMaterials, p
             <MoneyDisplay amount={totalInventoryValue + totalRawValue} />
           </p>
           <p className="text-xs text-emerald-400 mt-2 flex items-center gap-1">
-             <TrendingUp size={12} /> +2.5% from last month
+             <TrendingUp size={12} /> Live Asset Value
           </p>
         </div>
 
-        {/* Low Stock */}
-        <div className="bg-white/5 backdrop-blur-xl p-6 rounded-2xl shadow-xl border border-white/10 relative overflow-hidden group hover:bg-white/10 transition-colors duration-300">
+        {/* Low Stock - Clickable Link */}
+        <div 
+          onClick={() => navigate('/inventory', { state: { filter: 'low-stock' } })}
+          className="bg-white/5 backdrop-blur-xl p-6 rounded-2xl shadow-xl border border-white/10 relative overflow-hidden group hover:bg-white/10 transition-colors duration-300 cursor-pointer"
+        >
           <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
              <AlertTriangle size={64} className="text-amber-400" />
           </div>
@@ -103,24 +159,24 @@ export const Dashboard: React.FC<DashboardProps> = ({ inventory, rawMaterials, p
             </div>
           </div>
           <p className="text-2xl font-bold text-white relative z-10">{lowStockCount}</p>
-          <p className="text-xs text-slate-500 mt-2">Items below reorder point</p>
+          <p className="text-xs text-slate-500 mt-2 group-hover:text-cyan-400 transition-colors">Items below reorder point →</p>
         </div>
 
-        {/* Open POs */}
+        {/* Active POs */}
         <div className="bg-white/5 backdrop-blur-xl p-6 rounded-2xl shadow-xl border border-white/10 relative overflow-hidden group hover:bg-white/10 transition-colors duration-300">
           <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
              <Package size={64} className="text-blue-400" />
           </div>
           <div className="flex items-center justify-between mb-4 relative z-10">
-            <h3 className="text-sm font-medium text-slate-400">Open POs</h3>
+            <h3 className="text-sm font-medium text-slate-400">Active POs</h3>
             <div className="p-2 bg-blue-500/10 text-blue-400 rounded-lg border border-blue-500/20">
               <Package size={18} />
             </div>
           </div>
           <p className="text-2xl font-bold text-white relative z-10">
-             <MoneyDisplay amount={openPOValue} />
+             <MoneyDisplay amount={activePOValue} />
           </p>
-          <p className="text-xs text-slate-500 mt-2">Pending receiving</p>
+          <p className="text-xs text-slate-500 mt-2">Pending & Received</p>
         </div>
 
         {/* Monthly Profit */}
@@ -135,9 +191,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ inventory, rawMaterials, p
             </div>
           </div>
           <p className="text-2xl font-bold text-white relative z-10">
-            <MoneyDisplay amount={37350000} />
+            <MoneyDisplay amount={currentMonthProfit} />
           </p>
-          <p className="text-xs text-purple-400 mt-2">Est. current month</p>
+          <p className="text-xs text-purple-400 mt-2">Actual for current month</p>
         </div>
       </div>
 
