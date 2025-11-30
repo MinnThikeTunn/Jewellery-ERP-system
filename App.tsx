@@ -26,7 +26,7 @@ import { Purchasing } from './components/Purchasing';
 import { Accounting } from './components/Accounting';
 import { NotFound } from './components/NotFound';
 import { InventoryItem, RawMaterial, Vendor, PurchaseOrder, GLEntry, ReceiveData, ItemType, ItemStatus, UnitOfMeasure } from './types';
-import { supabase } from './lib/supabaseClient';
+import { supabase, isConfigured } from './lib/supabaseClient';
 import { seedDatabase } from './lib/seeder';
 
 const NavItem = ({ to, icon: Icon, label }: { to: string, icon: any, label: string }) => {
@@ -145,6 +145,14 @@ const App: React.FC = () => {
   const fetchAllData = async () => {
     setLoading(true);
     setError(null);
+
+    // 1. Check if keys are present. If not, show a helpful message instead of crashing.
+    if (!isConfigured()) {
+      setLoading(false);
+      setError("Configuration Missing: Please add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY to your Vercel Environment Variables and Redeploy.");
+      return;
+    }
+
     try {
       const [invRes, rawRes, vendRes, poRes, glRes] = await Promise.all([
         supabase.from('inventory_items').select('*').order('id', { ascending: false }),
@@ -168,7 +176,12 @@ const App: React.FC = () => {
 
     } catch (err: any) {
       console.error("Error fetching data:", err);
-      setError(err.message || "Failed to connect to Supabase.");
+      // 2. Handle "Failed to fetch" specifically (Network error or Paused project)
+      if (err.message === "Failed to fetch") {
+        setError("Network Error: Cannot connect to Supabase. Your project might be paused (check Supabase dashboard) or you have connection issues.");
+      } else {
+        setError(err.message || "Failed to connect to Supabase.");
+      }
     } finally {
       setLoading(false);
     }
