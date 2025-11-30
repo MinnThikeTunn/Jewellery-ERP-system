@@ -32,11 +32,11 @@ if (isValidConfig) {
     throw new Error(errorMessage);
   }
   
-  // For production builds without config, create a placeholder that will fail clearly
-  // This allows the app to at least render an error state rather than crashing
+  // For production builds without config, create a non-functional client
+  // that will fail with clear error messages on first database operation
   supabaseClient = createClient(
-    'https://misconfigured.supabase.co',
-    'misconfigured-key-check-env-vars'
+    'https://MISSING_CONFIGURATION.invalid',
+    'MISSING_SUPABASE_ANON_KEY_CHECK_ENV_FILE'
   );
 }
 
@@ -48,8 +48,12 @@ export const isConfigured = () => isValidConfig;
 /** 
  * @deprecated Use environment variables VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY instead.
  * This function is no longer functional and will be removed in a future version.
+ * Parameters are accepted for backward compatibility but ignored.
  */
-export const updateSupabaseConfig = () => {
+export const updateSupabaseConfig = (
+  _url?: string, 
+  _key?: string
+) => {
   console.warn(
     "updateSupabaseConfig is deprecated and no longer functional. " +
     "Use environment variables VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY instead."
