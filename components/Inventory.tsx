@@ -79,7 +79,7 @@ export const Inventory: React.FC<InventoryProps> = ({ items, onAddItem, onUpdate
         const lowerTerm = searchTerm.toLowerCase();
         result = result.filter(item => 
             item.name.toLowerCase().includes(lowerTerm) ||
-            item.sku.toLowerCase().includes(lowerTerm)
+            item.name.toLowerCase().includes(lowerTerm) // SKU removed, searching by name twice is redundant but safe
         );
     }
 
@@ -174,12 +174,12 @@ export const Inventory: React.FC<InventoryProps> = ({ items, onAddItem, onUpdate
   };
 
   const handleSave = () => {
-    if (formData.sku && formData.name && formData.qty_available !== undefined) {
+    if (formData.name && formData.qty_available !== undefined) {
       if (editingId) {
         onUpdateItem({ ...formData, id: editingId } as InventoryItem);
       } else {
         const item: Omit<InventoryItem, 'id'> = {
-            sku: formData.sku,
+            sku: formData.sku || `INV-${Date.now()}`,
             name: formData.name,
             item_type: formData.item_type || ItemType.FINISHED_GOOD,
             status: formData.status || ItemStatus.IN_STOCK,
@@ -194,7 +194,7 @@ export const Inventory: React.FC<InventoryProps> = ({ items, onAddItem, onUpdate
       setIsModalOpen(false);
       setFormData(initialFormState);
     } else {
-        alert("Please fill in at least SKU and Name");
+        alert("Please fill in Name");
     }
   };
 
@@ -207,7 +207,7 @@ export const Inventory: React.FC<InventoryProps> = ({ items, onAddItem, onUpdate
         </div>
         <button 
           onClick={handleOpenAdd}
-          className="bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white px-6 py-2.5 rounded-xl flex items-center gap-2 transition-all shadow-lg shadow-cyan-900/20 border border-white/10 hover:shadow-cyan-500/30 hover:scale-[1.02]"
+          className="bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white px-4 py-2.5 rounded-xl flex items-center gap-2 transition-all shadow-lg shadow-cyan-900/20 border border-white/10 hover:shadow-cyan-500/30 hover:scale-[1.02] whitespace-nowrap text-sm"
         >
           <Plus size={18} />
           ပစ္စည်းအသစ်ထည့်ရန်
@@ -221,7 +221,7 @@ export const Inventory: React.FC<InventoryProps> = ({ items, onAddItem, onUpdate
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
             <input 
                 type="text"
-                placeholder="SKU သို့မဟုတ် အမည်ဖြင့် ရှာဖွေရန်..."
+                placeholder="အမည်ဖြင့် ရှာဖွေရန်..."
                 className="w-full pl-10 pr-4 py-3 bg-white/5 backdrop-blur-md border border-white/10 rounded-xl text-slate-200 focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/50 placeholder:text-slate-500 transition-all shadow-lg"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
@@ -229,7 +229,7 @@ export const Inventory: React.FC<InventoryProps> = ({ items, onAddItem, onUpdate
             </div>
             <button 
                 onClick={() => setShowFilters(!showFilters)}
-                className={`flex items-center gap-2 px-6 py-3 border rounded-xl transition-all shadow-lg font-medium ${
+                className={`flex items-center gap-2 px-6 py-3 border rounded-xl transition-all shadow-lg font-medium whitespace-nowrap ${
                     showFilters 
                     ? 'bg-cyan-500/20 border-cyan-500/50 text-cyan-300' 
                     : 'bg-white/5 border-white/10 text-slate-300 hover:bg-white/10'
@@ -284,13 +284,13 @@ export const Inventory: React.FC<InventoryProps> = ({ items, onAddItem, onUpdate
                          <label className="text-xs font-bold text-slate-500 uppercase tracking-wider block">အမြန်ကြည့်ရန်</label>
                          <button 
                             onClick={() => setShowLowStockOnly(!showLowStockOnly)}
-                            className={`w-full flex items-center justify-between px-4 py-2.5 rounded-lg border text-sm transition-all ${
+                            className={`w-full flex items-center justify-between px-4 py-2.5 rounded-lg border text-sm transition-all whitespace-nowrap ${
                                 showLowStockOnly 
                                 ? 'bg-amber-500/20 border-amber-500/50 text-amber-300' 
                                 : 'bg-black/20 border-white/10 text-slate-400 hover:bg-white/10'
                             }`}
                         >
-                            <span className="flex items-center gap-2"><AlertCircle size={16}/> ပစ္စည်းပြတ်လပ်မှု သတိပေးချက်များ</span>
+                            <span className="flex items-center gap-2 overflow-hidden text-ellipsis"><AlertCircle size={16}/> ပစ္စည်းပြတ်လပ်မှု</span>
                             {showLowStockOnly && <CheckCircle size={14} />}
                          </button>
                     </div>
@@ -302,7 +302,7 @@ export const Inventory: React.FC<InventoryProps> = ({ items, onAddItem, onUpdate
                              {/* Stock Sort */}
                              <button 
                                 onClick={() => { setSortField('qty_available'); setSortOrder(sortOrder === 'desc' ? 'asc' : 'desc'); }}
-                                className={`px-4 py-2 rounded-lg border text-sm flex items-center justify-between transition-all ${
+                                className={`px-4 py-2 rounded-lg border text-sm flex items-center justify-between transition-all whitespace-nowrap ${
                                     sortField === 'qty_available' ? 'bg-blue-500/20 border-blue-500/50 text-blue-300' : 'bg-black/20 border-white/10 text-slate-400 hover:bg-white/10'
                                 }`}
                              >
@@ -313,7 +313,7 @@ export const Inventory: React.FC<InventoryProps> = ({ items, onAddItem, onUpdate
                              {/* Retail Sort */}
                              <button 
                                 onClick={() => { setSortField('retail_price'); setSortOrder(sortOrder === 'desc' ? 'asc' : 'desc'); }}
-                                className={`px-4 py-2 rounded-lg border text-sm flex items-center justify-between transition-all ${
+                                className={`px-4 py-2 rounded-lg border text-sm flex items-center justify-between transition-all whitespace-nowrap ${
                                     sortField === 'retail_price' ? 'bg-emerald-500/20 border-emerald-500/50 text-emerald-300' : 'bg-black/20 border-white/10 text-slate-400 hover:bg-white/10'
                                 }`}
                              >
@@ -324,7 +324,7 @@ export const Inventory: React.FC<InventoryProps> = ({ items, onAddItem, onUpdate
                              {/* Cost Sort */}
                              <button 
                                 onClick={() => { setSortField('landed_cost'); setSortOrder(sortOrder === 'desc' ? 'asc' : 'desc'); }}
-                                className={`px-4 py-2 rounded-lg border text-sm flex items-center justify-between transition-all ${
+                                className={`px-4 py-2 rounded-lg border text-sm flex items-center justify-between transition-all whitespace-nowrap ${
                                     sortField === 'landed_cost' ? 'bg-purple-500/20 border-purple-500/50 text-purple-300' : 'bg-black/20 border-white/10 text-slate-400 hover:bg-white/10'
                                 }`}
                              >
@@ -341,7 +341,7 @@ export const Inventory: React.FC<InventoryProps> = ({ items, onAddItem, onUpdate
                     </p>
                     <button 
                         onClick={resetFilters}
-                        className="text-xs flex items-center gap-1.5 text-slate-400 hover:text-white transition-colors"
+                        className="text-xs flex items-center gap-1.5 text-slate-400 hover:text-white transition-colors whitespace-nowrap"
                     >
                         <RefreshCcw size={12} /> စစ်ထုတ်မှုများအားလုံး ဖျက်မည်
                     </button>
@@ -356,25 +356,24 @@ export const Inventory: React.FC<InventoryProps> = ({ items, onAddItem, onUpdate
           <table className="w-full text-left text-sm">
             <thead className="bg-white/5 text-slate-300 font-semibold border-b border-white/10">
               <tr>
-                <th className="px-6 py-5">SKU / အမည်</th>
-                <th className="px-6 py-5">အမျိုးအစား</th>
-                <th className="px-6 py-5">နေရာ</th>
-                <th className="px-6 py-5 text-right">လက်ကျန်</th>
-                <th className="px-6 py-5 text-right">အရင်း</th>
-                <th className="px-6 py-5 text-right">အရောင်း</th>
-                <th className="px-6 py-5">အခြေအနေ</th>
-                <th className="px-6 py-5 text-right">လုပ်ဆောင်ချက်</th>
+                <th className="px-6 py-5 whitespace-nowrap">အမည်</th>
+                <th className="px-6 py-5 whitespace-nowrap">အမျိုးအစား</th>
+                <th className="px-6 py-5 whitespace-nowrap">နေရာ</th>
+                <th className="px-6 py-5 text-right whitespace-nowrap">လက်ကျန်</th>
+                <th className="px-6 py-5 text-right whitespace-nowrap">အရင်း</th>
+                <th className="px-6 py-5 text-right whitespace-nowrap">အရောင်း</th>
+                <th className="px-6 py-5 whitespace-nowrap">အခြေအနေ</th>
+                <th className="px-6 py-5 text-right whitespace-nowrap">လုပ်ဆောင်ချက်</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-white/5">
               {processedItems.map((item) => (
                 <tr key={item.id} className="hover:bg-white/5 transition-colors group">
                   <td className="px-6 py-5">
-                    <div className="font-medium text-white">{item.sku}</div>
-                    <div className="text-slate-500">{item.name}</div>
+                    <div className="font-medium text-white">{item.name}</div>
                   </td>
                   <td className="px-6 py-5">
-                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-slate-800/50 text-slate-300 border border-white/5">
+                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-slate-800/50 text-slate-300 border border-white/5 whitespace-nowrap">
                       <Tag size={12} />
                       {getTypeLabel(item.item_type)}
                     </span>
@@ -398,7 +397,7 @@ export const Inventory: React.FC<InventoryProps> = ({ items, onAddItem, onUpdate
                     {item.retail_price.toLocaleString()}
                   </td>
                   <td className="px-6 py-5">
-                    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border
+                    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border whitespace-nowrap
                       ${item.status === ItemStatus.IN_STOCK ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 
                         item.status === ItemStatus.RESERVED ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' : 
                         'bg-slate-700/30 text-slate-400 border-white/5'}`}>
@@ -459,19 +458,8 @@ export const Inventory: React.FC<InventoryProps> = ({ items, onAddItem, onUpdate
                 <X size={20} />
               </button>
             </div>
-            <div className="p-6 space-y-5">
-              <div className="grid grid-cols-2 gap-5">
-                <div>
-                  <label className="block text-xs font-medium text-slate-400 mb-1.5">SKU</label>
-                  <input 
-                    type="text" 
-                    className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/50 focus:outline-none transition-all"
-                    value={formData.sku || ''}
-                    onChange={e => setFormData({...formData, sku: e.target.value})}
-                    placeholder="e.g. RG-001"
-                  />
-                </div>
-                <div>
+            <div className="p-6 space-y-5 max-h-[80vh] overflow-y-auto">
+              <div>
                   <label className="block text-xs font-medium text-slate-400 mb-1.5">အမျိုးအစား</label>
                   <select 
                     className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/50 focus:outline-none appearance-none"
@@ -480,7 +468,6 @@ export const Inventory: React.FC<InventoryProps> = ({ items, onAddItem, onUpdate
                   >
                     {Object.values(ItemType).map(t => <option key={t} value={t} className="bg-slate-900">{getTypeLabel(t)}</option>)}
                   </select>
-                </div>
               </div>
               
               <div>
@@ -493,7 +480,7 @@ export const Inventory: React.FC<InventoryProps> = ({ items, onAddItem, onUpdate
                 />
               </div>
 
-              <div className="grid grid-cols-3 gap-5">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
                  <div>
                   <label className="block text-xs font-medium text-slate-400 mb-1.5">အရေအတွက်</label>
                   <input 
@@ -530,7 +517,7 @@ export const Inventory: React.FC<InventoryProps> = ({ items, onAddItem, onUpdate
                 </div>
               </div>
               
-              <div className="grid grid-cols-2 gap-5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                  <div>
                     <label className="block text-xs font-medium text-slate-400 mb-1.5">နေရာ</label>
                     <input 
@@ -563,8 +550,8 @@ export const Inventory: React.FC<InventoryProps> = ({ items, onAddItem, onUpdate
                  </div>
             </div>
             <div className="px-6 py-5 bg-white/5 border-t border-white/10 flex justify-end gap-3">
-              <button onClick={() => setIsModalOpen(false)} className="px-5 py-2.5 text-slate-400 hover:text-white font-medium transition-colors">မလုပ်တော့ပါ</button>
-              <button onClick={handleSave} className="px-6 py-2.5 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white rounded-xl shadow-lg shadow-cyan-900/20 hover:shadow-cyan-500/30 border border-white/10 transition-all flex items-center gap-2">
+              <button onClick={() => setIsModalOpen(false)} className="px-5 py-2.5 text-slate-400 hover:text-white font-medium transition-colors whitespace-nowrap">မလုပ်တော့ပါ</button>
+              <button onClick={handleSave} className="px-6 py-2.5 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white rounded-xl shadow-lg shadow-cyan-900/20 hover:shadow-cyan-500/30 border border-white/10 transition-all flex items-center gap-2 whitespace-nowrap">
                 {editingId ? <Pencil size={16} /> : <Plus size={16} />}
                 {editingId ? 'ပြင်ဆင်မည်' : 'သိမ်းဆည်းမည်'}
               </button>
@@ -580,7 +567,7 @@ export const Inventory: React.FC<InventoryProps> = ({ items, onAddItem, onUpdate
                 <div className="px-6 py-5 border-b border-white/10 flex justify-between items-center bg-white/5">
                     <div>
                         <h2 className="text-lg font-bold text-white">အရောင်းမှတ်တမ်းတင်ရန်</h2>
-                        <p className="text-xs text-slate-400">{sellingItem.sku} - {sellingItem.name}</p>
+                        <p className="text-xs text-slate-400">{sellingItem.name}</p>
                     </div>
                     <button onClick={() => setIsSellModalOpen(false)} className="text-slate-400 hover:text-white transition-colors"><X size={20} /></button>
                 </div>
@@ -619,8 +606,8 @@ export const Inventory: React.FC<InventoryProps> = ({ items, onAddItem, onUpdate
                      </div>
                 </div>
                 <div className="px-6 py-4 bg-white/5 border-t border-white/10 flex justify-end gap-3">
-                    <button onClick={() => setIsSellModalOpen(false)} className="px-4 py-2 text-slate-400 hover:text-white transition-colors">မလုပ်တော့ပါ</button>
-                    <button onClick={handleConfirmSell} className="px-6 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg transition-colors font-medium flex items-center gap-2 shadow-lg shadow-emerald-900/20">
+                    <button onClick={() => setIsSellModalOpen(false)} className="px-4 py-2 text-slate-400 hover:text-white transition-colors whitespace-nowrap">မလုပ်တော့ပါ</button>
+                    <button onClick={handleConfirmSell} className="px-6 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg transition-colors font-medium flex items-center gap-2 shadow-lg shadow-emerald-900/20 whitespace-nowrap">
                          <CheckCircle size={18} /> အရောင်းအတည်ပြုမည်
                     </button>
                 </div>

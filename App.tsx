@@ -24,6 +24,7 @@ import { Inventory } from './components/Inventory';
 import { Manufacturing } from './components/Manufacturing';
 import { Purchasing } from './components/Purchasing';
 import { Accounting } from './components/Accounting';
+import { NotFound } from './components/NotFound';
 import { InventoryItem, RawMaterial, Vendor, PurchaseOrder, GLEntry, ReceiveData, ItemType, ItemStatus, UnitOfMeasure } from './types';
 import { supabase } from './lib/supabaseClient';
 import { seedDatabase } from './lib/seeder';
@@ -77,7 +78,11 @@ const Layout = ({ children }: { children?: React.ReactNode }) => {
           <div className="bg-gradient-to-br from-cyan-500 to-blue-600 p-2.5 rounded-xl shadow-lg shadow-cyan-500/20">
             <Diamond size={24} className="text-white" />
           </div>
-          <span className="text-2xl font-bold tracking-wide text-transparent bg-clip-text bg-gradient-to-r from-white to-slate-400">JewelERP</span>
+          {/* Rebranded Title: Aung (Large) Yadanar (Small) */}
+          <div className="flex items-baseline gap-1.5 font-bold tracking-wide text-transparent bg-clip-text bg-gradient-to-r from-white to-slate-200">
+            <span className="text-2xl">Aung</span>
+            <span className="text-lg tracking-wider text-slate-400">Yadanar</span>
+          </div>
           <button onClick={() => setSidebarOpen(false)} className="lg:hidden text-slate-400 hover:text-white">
             <X size={24} />
           </button>
@@ -98,7 +103,11 @@ const Layout = ({ children }: { children?: React.ReactNode }) => {
            <button onClick={() => setSidebarOpen(true)} className="text-slate-300 hover:text-white">
              <Menu size={24} />
            </button>
-           <span className="font-bold text-slate-100">JewelERP</span>
+           {/* Mobile Header Branding */}
+           <div className="flex items-baseline gap-1 font-bold text-slate-100">
+             <span>Aung</span>
+             <span className="text-sm text-slate-300">Yadanar</span>
+           </div>
            <div className="w-6" /> {/* Spacer */}
         </header>
 
@@ -521,6 +530,12 @@ const App: React.FC = () => {
         alert('This PO has already been received.');
         return;
     }
+    
+    // Safety check for Division by Zero
+    if (!receiveData.quantity || receiveData.quantity <= 0) {
+        alert('Quantity must be greater than 0.');
+        return;
+    }
 
     setLoading(true);
     try {
@@ -725,6 +740,7 @@ const App: React.FC = () => {
           <Route path="/accounting" element={
             <Accounting glEntries={glEntries} />
           } />
+          <Route path="*" element={<NotFound />} />
         </Routes>
       </Layout>
     </Router>

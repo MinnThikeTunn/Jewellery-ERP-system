@@ -28,10 +28,10 @@ export const Manufacturing: React.FC<ManufacturingProps> = ({ rawMaterials, onCr
   const totalCost = materialCost + Number(laborCost);
 
   const handleCreateJob = () => {
-    if (selectedMaterial && usageAmount > 0 && newProductSku) {
+    if (selectedMaterial && usageAmount > 0) {
         // Create Finished Good Object (ID will be assigned by DB)
         const newItem: Omit<InventoryItem, 'id'> = {
-            sku: newProductSku,
+            sku: newProductSku || `MFG-${Date.now()}`,
             name: newProductName || 'Custom Job',
             item_type: ItemType.FINISHED_GOOD,
             status: ItemStatus.IN_STOCK,
@@ -67,7 +67,7 @@ export const Manufacturing: React.FC<ManufacturingProps> = ({ rawMaterials, onCr
       {/* Glass Tabs */}
       <div className="flex gap-2 p-1 bg-white/5 backdrop-blur-md border border-white/10 rounded-xl w-fit">
         <button 
-            className={`px-6 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${
+            className={`px-6 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 whitespace-nowrap ${
               activeTab === 'materials' 
                 ? 'bg-slate-800 text-cyan-400 shadow-lg border border-white/5' 
                 : 'text-slate-400 hover:text-white hover:bg-white/5'
@@ -77,7 +77,7 @@ export const Manufacturing: React.FC<ManufacturingProps> = ({ rawMaterials, onCr
             ကုန်ကြမ်းပစ္စည်း စာရင်း
         </button>
         <button 
-            className={`px-6 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${
+            className={`px-6 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 whitespace-nowrap ${
               activeTab === 'job' 
                 ? 'bg-slate-800 text-cyan-400 shadow-lg border border-white/5' 
                 : 'text-slate-400 hover:text-white hover:bg-white/5'
@@ -90,37 +90,39 @@ export const Manufacturing: React.FC<ManufacturingProps> = ({ rawMaterials, onCr
 
       {activeTab === 'materials' ? (
          <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 overflow-hidden shadow-xl animate-in fade-in duration-300">
-            <table className="w-full text-left text-sm">
-                <thead className="bg-white/5 text-slate-300 font-semibold border-b border-white/10">
-                <tr>
-                    <th className="px-6 py-5">ကုန်ကြမ်းအမည်</th>
-                    <th className="px-6 py-5">ယူနစ်</th>
-                    <th className="px-6 py-5 text-right">လက်ရှိစာရင်း</th>
-                    <th className="px-6 py-5 text-right">တစ်ယူနစ်ကျသင့်ငွေ</th>
-                    <th className="px-6 py-5 text-right">စုစုပေါင်းတန်ဖိုး</th>
-                </tr>
-                </thead>
-                <tbody className="divide-y divide-white/5">
-                {rawMaterials.map((mat) => (
-                    <tr key={mat.id} className="hover:bg-white/5 transition-colors">
-                    <td className="px-6 py-5 font-medium text-white">{mat.name}</td>
-                    <td className="px-6 py-5 text-slate-500">{mat.unit_of_measure}</td>
-                    <td className="px-6 py-5 text-right font-mono text-slate-300">{mat.current_stock}</td>
-                    <td className="px-6 py-5 text-right text-slate-400 tabular-nums">
-                         <span className="text-xs text-slate-600 mr-1">Ks</span>
-                         {mat.cost_per_unit.toLocaleString()}
-                    </td>
-                    <td className="px-6 py-5 text-right font-medium text-white tabular-nums">
-                        <span className="text-xs text-slate-600 mr-1">Ks</span>
-                        {(mat.current_stock * mat.cost_per_unit).toLocaleString()}
-                    </td>
+            <div className="overflow-x-auto">
+                <table className="w-full text-left text-sm">
+                    <thead className="bg-white/5 text-slate-300 font-semibold border-b border-white/10">
+                    <tr>
+                        <th className="px-6 py-5 whitespace-nowrap">ကုန်ကြမ်းအမည်</th>
+                        <th className="px-6 py-5 whitespace-nowrap">ယူနစ်</th>
+                        <th className="px-6 py-5 text-right whitespace-nowrap">လက်ရှိစာရင်း</th>
+                        <th className="px-6 py-5 text-right whitespace-nowrap">တစ်ယူနစ်ကျသင့်ငွေ</th>
+                        <th className="px-6 py-5 text-right whitespace-nowrap">စုစုပေါင်းတန်ဖိုး</th>
                     </tr>
-                ))}
-                {rawMaterials.length === 0 && (
-                    <tr><td colSpan={5} className="px-6 py-8 text-center text-slate-500">ကုန်ကြမ်းပစ္စည်းများ မရှိပါ</td></tr>
-                )}
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody className="divide-y divide-white/5">
+                    {rawMaterials.map((mat) => (
+                        <tr key={mat.id} className="hover:bg-white/5 transition-colors">
+                        <td className="px-6 py-5 font-medium text-white">{mat.name}</td>
+                        <td className="px-6 py-5 text-slate-500">{mat.unit_of_measure}</td>
+                        <td className="px-6 py-5 text-right font-mono text-slate-300">{mat.current_stock}</td>
+                        <td className="px-6 py-5 text-right text-slate-400 tabular-nums">
+                            <span className="text-xs text-slate-600 mr-1">Ks</span>
+                            {mat.cost_per_unit.toLocaleString()}
+                        </td>
+                        <td className="px-6 py-5 text-right font-medium text-white tabular-nums">
+                            <span className="text-xs text-slate-600 mr-1">Ks</span>
+                            {(mat.current_stock * mat.cost_per_unit).toLocaleString()}
+                        </td>
+                        </tr>
+                    ))}
+                    {rawMaterials.length === 0 && (
+                        <tr><td colSpan={5} className="px-6 py-8 text-center text-slate-500">ကုန်ကြမ်းပစ္စည်းများ မရှိပါ</td></tr>
+                    )}
+                    </tbody>
+                </table>
+            </div>
         </div>
       ) : (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 animate-in fade-in duration-300">
@@ -157,7 +159,7 @@ export const Manufacturing: React.FC<ManufacturingProps> = ({ rawMaterials, onCr
                         )}
                     </div>
                     
-                    <div className="grid grid-cols-2 gap-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                         <div>
                             <label className="block text-sm font-medium text-slate-400 mb-2">သုံးစွဲသည့် ပမာဏ</label>
                             <input 
@@ -193,16 +195,6 @@ export const Manufacturing: React.FC<ManufacturingProps> = ({ rawMaterials, onCr
                                     placeholder="e.g. Custom Gold Ring"
                                     value={newProductName}
                                     onChange={(e) => setNewProductName(e.target.value)}
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-xs font-medium text-slate-500 mb-1.5 uppercase tracking-wider">SKU အသစ်</label>
-                                <input 
-                                    type="text"
-                                    className="w-full bg-slate-900/50 border border-slate-700/50 rounded-xl px-4 py-3 text-white focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/50 focus:outline-none transition-all placeholder:text-slate-700"
-                                    placeholder="e.g. CUST-001"
-                                    value={newProductSku}
-                                    onChange={(e) => setNewProductSku(e.target.value)}
                                 />
                             </div>
                         </div>
@@ -243,8 +235,8 @@ export const Manufacturing: React.FC<ManufacturingProps> = ({ rawMaterials, onCr
 
                     <button 
                         onClick={handleCreateJob}
-                        disabled={totalCost === 0 || !newProductSku || !newProductName}
-                        className="w-full mt-8 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white py-4 rounded-xl font-semibold shadow-lg shadow-cyan-900/20 transition-all hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed flex justify-center items-center gap-2 relative z-10"
+                        disabled={totalCost === 0 || !newProductName}
+                        className="w-full mt-8 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white py-4 rounded-xl font-semibold shadow-lg shadow-cyan-900/20 transition-all hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed flex justify-center items-center gap-2 relative z-10 whitespace-nowrap"
                     >
                         ထုတ်လုပ်မှု ပြီးစီးကြောင်း မှတ်သားမည် <ArrowRight size={18} />
                     </button>

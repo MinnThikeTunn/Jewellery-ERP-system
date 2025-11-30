@@ -114,12 +114,12 @@ export const Dashboard: React.FC<DashboardProps> = ({ inventory, rawMaterials, p
 
   return (
     <div className="space-y-8">
-      <div className="flex justify-between items-end">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-4">
         <div>
           <h1 className="text-3xl font-bold text-white tracking-tight mb-1">လုပ်ငန်းသုံးသပ်ချက်</h1>
           <p className="text-slate-400">လုပ်ငန်းဆိုင်ရာ အချိန်နှင့်တပြေးညီ အချက်အလက်များ</p>
         </div>
-        <span className="text-xs font-mono text-cyan-500 bg-cyan-500/10 px-3 py-1 rounded-full border border-cyan-500/20">တိုက်ရိုက်</span>
+        <span className="text-xs font-mono text-cyan-500 bg-cyan-500/10 px-3 py-1 rounded-full border border-cyan-500/20 w-fit">တိုက်ရိုက်</span>
       </div>
 
       {/* KPI Cards */}
@@ -201,7 +201,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ inventory, rawMaterials, p
         {/* Valuation Breakdown */}
         <div className="bg-white/5 backdrop-blur-xl p-6 rounded-2xl shadow-xl border border-white/10">
           <h3 className="text-lg font-semibold text-white mb-6">ပိုင်ဆိုင်မှု တန်ဖိုးဖြတ်ခြင်း</h3>
-          <div className="h-72">
+          <div className="h-72 w-full min-w-0">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={valuationData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.1)" />
@@ -252,7 +252,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ inventory, rawMaterials, p
         {/* Profit Trend */}
         <div className="bg-white/5 backdrop-blur-xl p-6 rounded-2xl shadow-xl border border-white/10">
           <h3 className="text-lg font-semibold text-white mb-6">အရောင်းနှင့် အမြတ်ငွေ အခြေအနေ</h3>
-          <div className="h-72">
+          <div className="h-72 w-full min-w-0">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={salesTrendData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.1)" />
