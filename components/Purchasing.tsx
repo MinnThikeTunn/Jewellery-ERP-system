@@ -169,7 +169,7 @@ export const Purchasing: React.FC<PurchasingProps> = ({
                         </div>
                         <button 
                             onClick={() => onDeleteVendor(v.id)}
-                            className="text-slate-600 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all p-1.5 hover:bg-red-500/10 rounded"
+                            className="text-slate-600 hover:text-red-400 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-all p-1.5 hover:bg-red-500/10 rounded"
                             title="Delete Vendor"
                         >
                             <Trash2 size={14} />
@@ -239,7 +239,7 @@ export const Purchasing: React.FC<PurchasingProps> = ({
                                                     <PackageCheck size={14} /> လက်ခံရရှိ
                                                 </button>
                                             )}
-                                            <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <div className="flex items-center justify-end gap-1 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity">
                                                 <button 
                                                     onClick={() => handleOpenEditPO(po)}
                                                     className="p-1.5 text-slate-400 hover:text-cyan-400 hover:bg-cyan-500/10 rounded transition-colors"

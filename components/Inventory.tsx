@@ -406,7 +406,7 @@ export const Inventory: React.FC<InventoryProps> = ({ items, onAddItem, onUpdate
                     </span>
                   </td>
                   <td className="px-6 py-5 text-right">
-                    <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div className="flex items-center justify-end gap-1 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity">
                         <button 
                             onClick={() => handleOpenSell(item)}
                             className="p-2 text-emerald-400 hover:text-emerald-300 hover:bg-emerald-500/10 rounded-lg transition-colors flex items-center gap-1"
