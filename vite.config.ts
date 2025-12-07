@@ -19,5 +19,13 @@ export default defineConfig(({ mode }) => {
           '@': path.resolve(__dirname, '.'),
         }
       }
+      ,
+      // Vitest configuration for unit tests (jsdom environment for React Testing Library)
+      test: {
+        environment: 'jsdom',
+        globals: true,
+        setupFiles: './vitest.setup.ts',
+        include: ['**/*.test.{js,ts,tsx}']
+      }
     };
 });
